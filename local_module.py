@@ -1,17 +1,15 @@
 """
-BLA BLAH BLAH
-
-bleh blih bloh bluh
+description of the local module
 """
 
-import sys
-import os
 from zparser2 import z
+
+alias = ["xibrapz"]
 
 
 @z.task
-def aaaa(somestring: str, some_int: int, workdir=None, root_url=None):
-    "description of the function"
+def task_on_a_local(somestring: str, some_int: int, workdir=None, root_url=None):
+    "description of the task"
     print(f"somestring={somestring}")
     print(f"some_int={some_int}")
     print(f"workdir={workdir}")

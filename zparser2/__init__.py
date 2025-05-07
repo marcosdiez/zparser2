@@ -5,6 +5,8 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
+__version__ = "0.0.2"
+
 def extracted_arg_name(arg):
         if arg.startswith('--'):
             return arg[2:]
@@ -44,7 +46,7 @@ class ArgumentException(Exception):
     def __init__(self, error_msg=None):
         self.error_msg = error_msg
 
-class Helper(object):
+class Helper:
     def __init__(self):
         self.help = ""
 
@@ -78,17 +80,11 @@ class ZParser(Helper):
         self.plugins = {}
         self.set_plugin_module(plugin_module)
         self.settings = {}
-        self.initialized = False
         self.quiet = False
         self.runner = None
 
     def __repr__(self):
         return self.plugins
-
-    def initialize(self):
-        # this is necessary so we don't give warning in case this files are imported by Farmforce,
-        # manage.py pgrate, etc...
-        self.initialized = True
 
     def set_plugin_module(self, plugin_module):
         self.plugin_module = plugin_module
@@ -103,24 +99,25 @@ class ZParser(Helper):
             plugin_list = [filename[:-3] for filename in os.listdir(plugin_dir) if filename[-3:] == '.py'
                            and filename != '__init__.py']
             # create dict entry before loading them
-            for plugin in plugin_list:
-                self.plugins[plugin] = Plugin(plugin)
+            for plugin_name in plugin_list:
+                self.plugins[plugin_name] = Plugin(plugin_name)
 
-            for plugin in plugin_list:
+            for plugin_name in plugin_list:
                 # loaded_plugin = importlib.import_module("{}.{}".format(module, plugin))
 
                 try:
-                    loaded_plugin = importlib.import_module("{}.{}".format(module, plugin))
+                    loaded_plugin = importlib.import_module("{}.{}".format(module, plugin_name))
                 except ImportError as e:
-                    del self.plugins[plugin]
-                    print("Failed to load plugin {}.{} [{}]".format(module, plugin, e))
+                    del self.plugins[plugin_name]
+                    print("Failed to load plugin {}.{} [{}]".format(module, plugin_name, e))
                     raise
                 else:
                     try:
-                        self.plugins[plugin].alias = loaded_plugin.alias
+                        self.plugins[plugin_name].alias = loaded_plugin.alias
                     except AttributeError:
-                        self.plugins[plugin].alias = []
-                    self.plugins[plugin].help = loaded_plugin.__doc__ or ""
+                        self.plugins[plugin_name].alias = []
+                    self.plugins[plugin_name].help = loaded_plugin.__doc__ or ""
+        return self
 
     def task(self, function=None, name=None, overwrite=None, short=None):
         if overwrite is None:
@@ -144,11 +141,12 @@ class ZParser(Helper):
             short = {}
 
         task = Task(function, name, overwrite, short)
-        try:
-            self.plugins[plugin_name].add_task(task)
-        except KeyError:
-            if self.initialized:
-                print("Failed to load plugin: {}. The task in question was {}".format(plugin_name, task))
+        if plugin_name not in self.plugins:
+            self.plugins[plugin_name] = Plugin(plugin_name)
+            self.plugins[plugin_name].alias = sys.modules[function.__module__].__dict__.get("alias", [])
+            self.plugins[plugin_name].help = sys.modules[function.__module__].__doc__ or ""
+        self.plugins[plugin_name].add_task(task)
+
 
     def usage(self):
         print("{} <plugin_name> <task>".format(self.prog_name))
@@ -221,6 +219,7 @@ class Plugin(Helper):
         self.name = name
         self.alias = []
         self.tasks = {}
+        self.help = ""
 
     def add_task(self, task):
         self.tasks[task.name] = task
@@ -273,6 +272,7 @@ class Task(Helper):
         self.args = []
         self.optional_args = []
         self.varargs = None
+        self.annotations = {}
         self._init_args()
         self._use_docstring()
 
@@ -295,8 +295,8 @@ class Task(Helper):
         argdata = getfullargspec(self.function)
 
         args = argdata.args
-        varargs = argdata.varargs
         defaults = argdata.defaults
+
 
         args2 = copy(args)
         if defaults:
@@ -308,8 +308,12 @@ class Task(Helper):
         for arg in args2:
             self.args.append(Argument(arg))
 
-        if varargs:
-            self.varargs = Varargs(varargs)
+        if argdata.varargs:
+            self.varargs = Varargs(argdata.varargs)
+
+        if argdata.annotations:
+            self.annotations = argdata.annotations
+
 
     def _clean_args(self):
         for arg in self.optional_args:
@@ -395,7 +399,7 @@ class Task(Helper):
         if self.args:
             print("Positional arguments:")
             for arg in self.args:
-                print("  {} - {}".format(arg.name, arg.short_help))
+                print("  {} - {} {}".format(arg.name, arg.short_help, self.annotations.get(arg.name, "")))
 
         if self.optional_args:
             print("Optional arguments:")
@@ -403,7 +407,7 @@ class Task(Helper):
                 arg_name = "--{}".format(arg.name)
                 if arg.short:
                     arg_name = "{}/-{}".format(arg_name, arg.short)
-                print("  {} (Default: {}) - {}".format(arg_name, arg.default, arg.short_help))
+                print("  {} (Default: {}) {} - {}".format(arg_name, arg.default, self.annotations.get(arg.name, ""), arg.short_help))
 
         if self.varargs:
             print("  {} - {}".format(self.varargs.name, self.varargs.short_help))
@@ -411,7 +415,20 @@ class Task(Helper):
     def _args_value(self):
         only_string_parameters = [arg.value for arg in self.all_args] + ([] if not self.varargs else self.varargs.value)
         parsed_paramenters = self._parse_floats_and_ints_in_a_list(only_string_parameters)
+        self._enforce_variable_annotations(parsed_paramenters)
         return parsed_paramenters
+
+    def _enforce_variable_annotations(self, parsed_paramenters):
+        if len(parsed_paramenters) <= len(self.all_args):
+            for i in range(len(parsed_paramenters)):
+                param_name = str(self.all_args[i])
+                param_class = self.annotations.get(param_name)
+                if param_class is not None:
+                    param_value = parsed_paramenters[i]
+                    if isinstance(param_value, param_class) or param_value.__class__ == int and param_class == float:
+                        continue
+                    else:
+                        raise ArgumentException(f"Invalid value for paramter {param_name}. A {param_class} is expected, not {param_value.__class__}")
 
     def _parse_floats_and_ints_in_a_list(self, the_list):
         size = len(the_list)
@@ -526,5 +543,14 @@ class Varargs(Argument):
     def __init__(self, arg_python, name=None, short=None):
         super(Varargs, self).__init__(arg_python, name, short)
         self._value = []
+
+
+def init(plugin_list: list=[]) -> int:
+    global z
+    try:
+        z.set_plugin_module(plugin_list).parse().run()
+    except ZExitException as exit_exception:
+        sys.exit(exit_exception.exit_code)
+    sys.exit(0)
 
 z = ZParser()

@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
+"""description of the __main__ module"""
+import zparser2
+from zparser2 import z
 
-import sys
-from zparser.zparser import z, ZExitException, zexit
-
-def _init_parser():
-    z.initialize()
-    z.set_plugin_module(['plugins',])
-    return z
+import local_module
 
 
-if __name__ == '__main__':
-    exit_code = 0
-    # try:
-    try:
-        _init_parser()
-        runner = z.parse(prog_name=sys.argv[0])
-        # apply_settings(z.settings)
-        runner.run()
-    except ZExitException as exit_exception:
-        exit_code = exit_exception.exit_code
-    # finally:  # move that to zparser (part of run)
-    sys.exit(exit_code)
+@z.task
+def task_on_the_main_file(somestring: str, some_int: int, workdir=None, root_url=None):
+    "description of the task"
+    print(f"somestring={somestring}")
+    print(f"some_int={some_int}")
+    print(f"workdir={workdir}")
+    print(f"root_url={root_url}")
+
+
+if __name__ == "__main__":
+    zparser2.init(["plugins",])

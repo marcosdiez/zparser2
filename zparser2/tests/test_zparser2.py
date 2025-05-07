@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-# try:
-#     from build_scripts.zparser.zparser import z, Plugin, Argument, ArgumentOptional
-# except ImportError:
-#     # we can't afford not to run wcli because of stupid python path limitation
-#     # sys.path.append(".")
-from zparser import z, Plugin, ArgumentOptional
-
+from zparser2 import z, Plugin, ArgumentOptional
 
 
 class TestZParser(unittest.TestCase):
@@ -96,15 +90,17 @@ class TestZParser(unittest.TestCase):
         self.assertArgsValue(task, ["value3", "value2"])
 
     def test_parser_mixed_args(self):
-        def my_func(arg1, arg2 = None, *arg3):
+        def my_func(arg1, arg2=None, *arg3):
             pass
 
         self._load_task("plug", my_func)
-        task = z.parse(["wcli.py", "plug", "my_func", "value1", "value2", "value3", "value4"])
+        task = z.parse(
+            ["wcli.py", "plug", "my_func", "value1", "value2", "value3", "value4"]
+        )
         self.assertArgsValue(task, ["value1", "value2", "value3", "value4"])
 
     def test_parser_none_value(self):
-        def my_func(arg0 = False, arg1 = None):
+        def my_func(arg0=False, arg1=None):
             pass
 
         self._load_task("plug", my_func)
@@ -116,7 +112,7 @@ class TestZParser(unittest.TestCase):
         self.assertArgsValue(task, [True, None])
 
     def test_parser_boolean(self):
-        def my_func(arg0 = False, arg1 = True):
+        def my_func(arg0=False, arg1=True):
             pass
 
         self._load_task("plug", my_func)
@@ -126,46 +122,60 @@ class TestZParser(unittest.TestCase):
         task = z.parse(["wcli.py", "plug", "my_func", "--arg0", "--no-arg1"])
         self.assertArgsValue(task, [True, False])
 
-
     def test_parse_int(self):
-        def my_func(arg0 = 10):
+        def my_func(arg0=10):
             pass
 
         self._load_task("plug", my_func)
         task = z.parse(["wcli.py", "plug", "my_func"])
         self.assertArgsValue(task, [10])
 
-
         self._load_task("plug", my_func)
         task = z.parse(["wcli.py", "plug", "my_func", "42"])
         self.assertArgsValue(task, [42])
 
-
     def test_parse_float(self):
-        def my_func(arg0 = 0.5):
+        def my_func(arg0=0.5):
             pass
 
         self._load_task("plug", my_func)
         task = z.parse(["wcli.py", "plug", "my_func"])
         self.assertArgsValue(task, [0.5])
 
-
         self._load_task("plug", my_func)
         task = z.parse(["wcli.py", "plug", "my_func", "42.42"])
         self.assertArgsValue(task, [42.42])
 
     def test_multiple_parameters(self):
-        def my_func(some_string = "blah", some_int = 42, some_float = 10.10, some_boolean = True,  another_string="mm", some_none = None):
+        def my_func(
+            some_string="blah",
+            some_int=42,
+            some_float=10.10,
+            some_boolean=True,
+            another_string="mm",
+            some_none=None,
+        ):
             pass
 
         self._load_task("plug", my_func)
         task = z.parse(["wcli.py", "plug", "my_func"])
         self.assertArgsValue(task, ["blah", 42, 10.10, True, "mm", None])
 
-
         self._load_task("plug", my_func)
-        task = z.parse(["wcli.py", "plug", "my_func", "zz" , "822", "20.20", "--no-some_boolean",  "--another_string", "gg" ])
-        self.assertArgsValue(task, ["zz" , 822, 20.20, False, "gg", None ])
+        task = z.parse(
+            [
+                "wcli.py",
+                "plug",
+                "my_func",
+                "zz",
+                "822",
+                "20.20",
+                "--no-some_boolean",
+                "--another_string",
+                "gg",
+            ]
+        )
+        self.assertArgsValue(task, ["zz", 822, 20.20, False, "gg", None])
 
     def test_settings(self):
         def my_func():
@@ -173,16 +183,29 @@ class TestZParser(unittest.TestCase):
 
         self._load_task("plug", my_func)
 
-        z.parse(["wcli.py", "-s", "setting1", "value1", "-s", "setting2", "value2", "plug", "my_func"])
-        self.assertEqual(z.settings, {'setting1': 'value1', 'setting2': 'value2'})
+        z.parse(
+            [
+                "wcli.py",
+                "-s",
+                "setting1",
+                "value1",
+                "-s",
+                "setting2",
+                "value2",
+                "plug",
+                "my_func",
+            ]
+        )
+        self.assertEqual(z.settings, {"setting1": "value1", "setting2": "value2"})
 
     def test_list(self):
         def my_func(arg=[]):
             pass
 
         self._load_task("plug", my_func)
-        task = z.parse(["wcli.py", "plug", "my_func", 'a,b,c'])
-        self.assertArgsValue(task, [['a','b','c']])
+        task = z.parse(["wcli.py", "plug", "my_func", "a,b,c"])
+        self.assertArgsValue(task, [["a", "b", "c"]])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
