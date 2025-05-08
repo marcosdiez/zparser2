@@ -46,6 +46,13 @@ class ArgumentException(Exception):
     def __init__(self, error_msg=None):
         self.error_msg = error_msg
 
+class TaskAlreadyExistOnThisPluginException(Exception):
+    def __init__(self, plugin_name, task_name):
+        self.plugin_name = plugin_name
+        self.task_name = task_name
+        self.message = f"ERROR: Plugin {plugin_name} already has a task called {task_name}."
+        super().__init__(self.message)
+
 class Helper:
     def __init__(self):
         self.help = ""
@@ -222,6 +229,8 @@ class Plugin(Helper):
         self.help = ""
 
     def add_task(self, task):
+        if task.name in self.tasks:
+            raise TaskAlreadyExistOnThisPluginException(self.name, task.name)
         self.tasks[task.name] = task
 
     def __repr__(self):

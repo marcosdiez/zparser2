@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from zparser2 import z, Plugin, ArgumentOptional
+from zparser2 import z, Plugin, ArgumentOptional, Task, TaskAlreadyExistOnThisPluginException
 
 
 class TestZParser(unittest.TestCase):
@@ -24,6 +24,18 @@ class TestZParser(unittest.TestCase):
 
         # test help message
         self.assertEqual(t.help, "my help")
+
+
+    def test_add_task_twice(self):
+        def my_task():
+            pass
+        a_task = Task(my_task, "my_task", None, None)
+        p = Plugin("a_plugin")
+        p.add_task(a_task)
+
+        with self.assertRaises(TaskAlreadyExistOnThisPluginException):
+            p.add_task(a_task)
+
 
     def test_task_positional_arg(self):
         def my_func(arg1, arg2, arg3=None):
