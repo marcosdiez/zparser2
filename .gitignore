@@ -5,3 +5,4 @@ build/
 dist/
 __pycache__/
 zparser2.egg-info/
+env2
