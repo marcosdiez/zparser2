@@ -32,7 +32,7 @@ def triple_number(x: float):
     return 3*x
 ```
 
-math_functions.py
+string_functions.py
 ```
 """string processing"""
 from zparser2 import z
