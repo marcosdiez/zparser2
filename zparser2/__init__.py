@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):

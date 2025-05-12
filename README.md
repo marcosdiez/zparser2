@@ -1,14 +1,20 @@
 ZParser2 Cli Argument Parsing Library
 
 
-`zparser2` is probably the simplest most opinionated argument parsing library. Lot's of conventions, zero configuration!
+`zparser2` is probably the simplest most opinionated argument parsing library in python. Lot's of conventions, zero configuration!
 
-If you add the `@z.task` notation to a function, it automatically become available to the CLI.
-The function's parameters are what the CLI will expect. If notations are given, type will be enforced.
-The file in which the function is located will be the module in which the function will be available.
+All you have to do is add the `@z.task` notation to a function and it automatically become available to the CLI.
 
-The downside is that you can only have two layers in your cli. That being said, more than that would be too complex and less than that you don't really need a library.
+Perks:
 
+  * If a function contains annotations, it's variable types will be enforced.
+  * If a function contains a docstring, it will show up as the function's comment in the CLI.
+  * The file in which the function is located will be the module in which the function will be available.
+  * If a module contains a docstring, it will show as the module's documentation in the CLI
+
+The downside is that you can only have two layers in your cli (app.py MODULE_NAME FUNCTION_NAME). That being said, more than that would be too complex and less than that you don't really need an argument parsing library.
+
+TODO: functions in the main file should be accessible directly, instead of from the `__main__` module.
 
 Example
 -------
@@ -17,7 +23,7 @@ Let's say you have 3 files:
 
 
 math_functions.py
-```
+```python
 """here we do math"""
 from zparser2 import z
 
@@ -33,7 +39,7 @@ def triple_number(x: float):
 ```
 
 string_functions.py
-```
+```python
 """string processing"""
 from zparser2 import z
 
@@ -49,7 +55,7 @@ def first_word(x: str):
 
 @z.task
 def last_word(x: str):
-    """returns the first word of a string"""
+    """returns the last word of a string"""
     return x.split(" ")[-1]
 
 @z.task
@@ -63,7 +69,7 @@ def another_task(somestring: str, some_int: int, workdir=None, root_url=None):
 
 
 mycli.py
-```
+```python
 #!/usr/bin/env python3
 import zparser2
 
@@ -97,7 +103,7 @@ Tasks:
   add_square_brackets_to_string - x -> [x]
   another_task         - description of the task
   first_word           - returns the first word of a string
-  last_word            - returns the first word of a string
+  last_word            - returns the last word of a string
 ```
 
 ```
