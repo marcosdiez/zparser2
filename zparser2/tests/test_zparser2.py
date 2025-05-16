@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from zparser2 import z, Plugin, ArgumentOptional, Task, TaskAlreadyExistOnThisPluginException
+from zparser2 import z, Plugin, ArgumentOptional, Task, TaskAlreadyExistOnThisPluginException, __version__ as zversion
 
 
 class TestZParser(unittest.TestCase):
@@ -220,4 +220,5 @@ class TestZParser(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    print(zversion)
     unittest.main()

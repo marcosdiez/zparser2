@@ -7,14 +7,13 @@ All you have to do is add the `@z.task` notation to a function and it automatica
 
 Perks:
 
-  * If a function contains annotations, it's variable types will be enforced.
+  * If a function contains annotations, it's variable types will be enforced and proper help will be displayed to the user.
   * If a function contains a docstring, it will show up as the function's comment in the CLI.
   * The file in which the function is located will be the module in which the function will be available.
   * If a module contains a docstring, it will show as the module's documentation in the CLI
+  * If a function is in the main python script (`__main__`), it will be directly accessible, without needing to provide the module name.
 
-The downside is that you can only have two layers in your cli (app.py MODULE_NAME FUNCTION_NAME). That being said, more than that would be too complex and less than that you don't really need an argument parsing library.
-
-TODO: functions in the main file should be accessible directly, instead of from the `__main__` module.
+The downside is that you can only have up two layers in your cli (app.py MODULE_NAME FUNCTION_NAME). That being said, more than that would be too complex.
 
 Example
 -------
@@ -72,9 +71,16 @@ mycli.py
 ```python
 #!/usr/bin/env python3
 import zparser2
+from zparser2 import z
 
 import math_functions
 import string_functions
+
+@z.task
+def say_hello(name: str):
+    """this is a function on the main file"""
+    print(f"Hello {name}, welcome to zparser 2!")
+
 
 if __name__ == "__main__":
     zparser2.init()
@@ -85,10 +91,13 @@ Output
 
 ```
 (env2) mdiez@batman:~/code/zparser2/example$ ./mycli.py
+./mycli.py <task>
 ./mycli.py <plugin_name> <task>
 Plugin list:
   math_functions       - here we do math
   string_functions     - string processing
+Task list:
+  say_hello            - this is a function on the main file
 
 ```
 
@@ -129,6 +138,10 @@ workdir=None
 root_url=https://blah.com
 ```
 
+```
+(env2) mdiez@batman:~/code/zparser2/example$ ./mycli.py say_hello Bob
+Hello Bob, welcome to zparser 2!
+```
 
 How to build & publish
 ----------------------

@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):
@@ -156,10 +156,20 @@ class ZParser(Helper):
 
 
     def usage(self):
-        print("{} <plugin_name> <task>".format(self.prog_name))
-        print("Plugin list:")
-        for plugin in [value for (key, value) in sorted(self.plugins.items())]:
-            print("  {:20} - {}".format(plugin.name, plugin.short_help))
+        has_main = "__main__" in self.plugins
+        if has_main:
+            print("{} <task>".format(self.prog_name))
+
+        if len(self.plugins) > 2 or ( has_main == False and len(self.plugins) > 1):
+            print("{} <plugin_name> <task>".format(self.prog_name))
+            print("Plugin list:")
+            for plugin in [value for (key, value) in sorted(self.plugins.items())]:
+                if plugin.name != "__main__":
+                    print("  {:20} - {}".format(plugin.name, plugin.short_help))
+
+        if has_main:
+            print("Task list:")
+            self.plugins["__main__"].list_tasks()
 
     def parse(self, argv=None, prog_name=None):
         if argv is None:
@@ -178,15 +188,22 @@ class ZParser(Helper):
         if is_optional(argv[0]):
             self.print_help("This argument is unexpected {}".format(argv[0]))
 
-        plugin = self._load_plugin_from_arg(argv[0])
-        self.runner = plugin.parse(argv[1:])
+        plugin, self.runner = self._load_plugin_and_runner_from_arg(argv)
         return self.runner
 
-    def _load_plugin_from_arg(self, arg):
+    def _load_plugin_and_runner_from_arg(self, argv):
+        arg = argv[0]
         for plugin in self.plugins.values():
             if arg == plugin.name or arg in plugin.alias:
-                return plugin
-        return self.print_help("Plugin with name {} doesn't exist".format(arg))
+                runner = plugin.parse(argv[1:])
+                return plugin, runner
+        if "__main__" in self.plugins:
+            plugin = self.plugins["__main__"]
+            runner = plugin.parse(argv[0:])
+            return plugin, runner
+
+        plugin = self.print_help("Plugin with name {} doesn't exist".format(arg))
+        return plugin, None
 
     def parse_global(self, argv=None):
         pos = 0
@@ -242,6 +259,9 @@ class Plugin(Helper):
         print("{} {} <task>".format(z.prog_name, self.name))
         print("Plugin alias: {}".format(self.alias))
         print("Tasks:")
+        self.list_tasks()
+
+    def list_tasks(self):
         for task in [value for (key, value) in sorted(self.tasks.items())]:
             print("  {:20} - {}".format(task.name, task.short_help))
 
