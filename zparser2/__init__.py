@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):
@@ -168,7 +168,7 @@ class ZParser(Helper):
                     print("  {:20} - {}".format(plugin.name, plugin.short_help))
 
         if has_main:
-            print("Task list:")
+            print("Tasks:")
             self.plugins["__main__"].list_tasks()
 
     def parse(self, argv=None, prog_name=None):
@@ -424,7 +424,10 @@ class Task(Helper):
         if self.varargs:
             parameters.append("[{p}, [{p}...]".format(p=self.varargs.name))
 
-        print("  {} {} {} {}".format(z.prog_name, self.plugin, self.name, " ".join(parameters)))
+        if self.plugin == "__main__":
+            print("  {} {} {}".format(z.prog_name, self.name, " ".join(parameters)))
+        else:
+            print("  {} {} {} {}".format(z.prog_name, self.plugin, self.name, " ".join(parameters)))
         if self.args:
             print("Positional arguments:")
             for arg in self.args:
