@@ -15,6 +15,12 @@ Perks:
 
 The downside is that you can only have up two layers in your cli (app.py MODULE_NAME FUNCTION_NAME). That being said, more than that would be too complex.
 
+Instalation
+-----------
+```
+pip3 install zparser2
+```
+
 Example
 -------
 
