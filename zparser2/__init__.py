@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.8"
+__version__ = "0.0.9"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):
@@ -158,6 +158,8 @@ class ZParser(Helper):
     def usage(self):
         has_main = "__main__" in self.plugins
         if has_main:
+            if len(self.plugins["__main__"].help) > 0:
+                print(self.plugins["__main__"].help)
             print("{} <task>".format(self.prog_name))
 
         if len(self.plugins) > 2 or ( has_main == False and len(self.plugins) > 1):
