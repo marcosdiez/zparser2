@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):
@@ -156,22 +156,22 @@ class ZParser(Helper):
 
 
     def usage(self):
-        has_main = "__main__" in self.plugins
+        has_main = PYTHON_MAIN in self.plugins
         if has_main:
-            if len(self.plugins["__main__"].help) > 0:
-                print(self.plugins["__main__"].help)
+            if len(self.plugins[PYTHON_MAIN].help) > 0:
+                print(self.plugins[PYTHON_MAIN].help)
             print("{} <task>".format(self.prog_name))
 
         if len(self.plugins) > 2 or ( has_main == False and len(self.plugins) > 1):
             print("{} <plugin_name> <task>".format(self.prog_name))
             print("Plugin list:")
             for plugin in [value for (key, value) in sorted(self.plugins.items())]:
-                if plugin.name != "__main__":
+                if plugin.name != PYTHON_MAIN:
                     print("  {:20} - {}".format(plugin.name, plugin.short_help))
 
         if has_main:
             print("Tasks:")
-            self.plugins["__main__"].list_tasks()
+            self.plugins[PYTHON_MAIN].list_tasks()
 
     def parse(self, argv=None, prog_name=None):
         if argv is None:
@@ -199,8 +199,8 @@ class ZParser(Helper):
             if arg == plugin.name or arg in plugin.alias:
                 runner = plugin.parse(argv[1:])
                 return plugin, runner
-        if "__main__" in self.plugins:
-            plugin = self.plugins["__main__"]
+        if PYTHON_MAIN in self.plugins:
+            plugin = self.plugins[PYTHON_MAIN]
             runner = plugin.parse(argv[0:])
             return plugin, runner
 
@@ -258,7 +258,7 @@ class Plugin(Helper):
     def usage(self):
         print(self.help)
 
-        if self.name == "__main__":
+        if self.name == PYTHON_MAIN:
             print("{} <task>".format(z.prog_name))
         else:
             print("{} {} <task>".format(z.prog_name, self.name))
@@ -429,7 +429,7 @@ class Task(Helper):
         if self.varargs:
             parameters.append("[{p}, [{p}...]".format(p=self.varargs.name))
 
-        if self.plugin == "__main__":
+        if self.plugin == PYTHON_MAIN:
             print("  {} {} {}".format(z.prog_name, self.name, " ".join(parameters)))
         else:
             print("  {} {} {} {}".format(z.prog_name, self.plugin, self.name, " ".join(parameters)))
