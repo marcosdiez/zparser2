@@ -33,7 +33,7 @@ BOLD = '\033[1m'
 RED = '\033[91m'
 
 RST_PARAM_RE = re.compile(r"^([\t ]*):param (.*?): (.*\n(\1[ \t]+.*\n*)*)", re.MULTILINE)
-
+PYTHON_MAIN = "__main__"
 
 class ZExitException(Exception):
     def __init__(self, exit_code):
@@ -258,7 +258,10 @@ class Plugin(Helper):
     def usage(self):
         print(self.help)
 
-        print("{} {} <task>".format(z.prog_name, self.name))
+        if self.name == "__main__":
+            print("{} <task>".format(z.prog_name))
+        else:
+            print("{} {} <task>".format(z.prog_name, self.name))
         print("Plugin alias: {}".format(self.alias))
         print("Tasks:")
         self.list_tasks()
