@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.10"
+__version__ = "0.0.11"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):
@@ -583,6 +583,9 @@ class Varargs(Argument):
 
 
 def init(plugin_list: list=[]) -> int:
+    return zparser2_init(plugin_list)
+
+def zparser2_init(plugin_list: list=[]) -> int:
     global z
     try:
         z.set_plugin_module(plugin_list).parse().run()

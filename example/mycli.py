@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-import zparser2
-from zparser2 import z
-
+"""description of the __main__ module"""
+from zparser2 import z, zparser2_init
 import math_functions
 import string_functions
 
@@ -12,4 +11,4 @@ def say_hello(name: str):
     print(f"Hello {name}, welcome to zparser 2!")
 
 if __name__ == "__main__":
-    zparser2.init()
+    zparser2_init()

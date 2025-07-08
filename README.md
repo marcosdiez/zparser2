@@ -76,20 +76,20 @@ def another_task(somestring: str, some_int: int, workdir=None, root_url=None):
 mycli.py
 ```python
 #!/usr/bin/env python3
-import zparser2
-from zparser2 import z
-
+"""description of the __main__ module"""
+from zparser2 import z, zparser2_init
 import math_functions
 import string_functions
+
 
 @z.task
 def say_hello(name: str):
     """this is a function on the main file"""
     print(f"Hello {name}, welcome to zparser 2!")
 
-
 if __name__ == "__main__":
-    zparser2.init()
+    zparser2_init()
+
 ```
 
 Output
