@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):
@@ -507,7 +507,7 @@ class Task(Helper):
                         for r in result:
                             print(r)
                 elif isinstance(result, dict):
-                    for key, value in result.iteritems():
+                    for key, value in result.items():
                         print("{}\t{}".format(key, value))
                 else:
                     print(result)
