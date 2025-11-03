@@ -156,3 +156,7 @@ How to build & publish
 * `python3 -m twine upload --repository testpypi dist/*`
 * `python3 -m twine upload --repository pypi dist/*`
 
+Link
+----
+* https://pypi.org/project/zparser2/
+* https://github.com/marcosdiez/zparser2/
