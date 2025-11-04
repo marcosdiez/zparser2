@@ -629,6 +629,11 @@ class ArgumentOptional(Argument):
                 return int(self._value)
             except ValueError:
                 self.print_help("Invalid data, expect integer for arg: {}".format(self.name))
+        elif isinstance(self.default, float):
+            try:
+                return float(self._value)
+            except ValueError:
+                self.print_help("Invalid data, expect float for arg: {}".format(self.name))
         elif isinstance(self.default, list):
             result = []
             for i in self._value.split(","):

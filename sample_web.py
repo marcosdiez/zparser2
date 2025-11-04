@@ -14,7 +14,7 @@ import local_module
 
 
 @z.task
-def task_on_the_main_file(somestring: str, some_int: int, some_float: float, some_list: list = ["aa", "bb", "cc"], favorite_number=42, workdir: str = None, root_url="http://blah", *vararg):
+def task_on_the_main_file(somestring: str, some_int: int, some_float: float, some_list: list = ["aa", "bb", "cc"], favorite_number=42, my_float=4.5, workdir: str = None, root_url="http://blah", *vararg):
     "description of the task"
     print("this is task_on_the_main_file")
     print(f"somestring={somestring}")
@@ -22,6 +22,7 @@ def task_on_the_main_file(somestring: str, some_int: int, some_float: float, som
     print(f"some_float={some_float}")
     print(f"some_list={some_list}")
     print(f"favorite_number={favorite_number}")
+    print(f"my_float={my_float}")
     print(f"workdir={workdir}")
     print(f"root_url={root_url}")
     print(f"vararg={vararg}")
