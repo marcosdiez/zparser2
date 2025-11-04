@@ -500,7 +500,8 @@ class Task(Helper):
                 arg_name = "--{}".format(arg.name)
                 if arg.short:
                     arg_name = "{}/-{}".format(arg_name, arg.short)
-                self.printer.print_parameter(arg.name, arg.short_help, self.annotations.get(arg.name, ""), True, arg.default)
+                arg_type = self._get_type_of_optional_argument(arg)
+                self.printer.print_parameter(arg.name, arg.short_help, arg_type, True, arg.default)
             self.printer.optional_args_end()
 
 
@@ -511,6 +512,11 @@ class Task(Helper):
             self.printer.varargs_end()
 
         self.printer.args_section_end()
+
+    def _get_type_of_optional_argument(self, arg):
+        if arg.default is not None:
+            return arg.default.__class__
+        return self.annotations.get(arg.name, "")
 
     def _args_value(self):
         only_string_parameters = [arg.value for arg in self.all_args] + ([] if not self.varargs else self.varargs.value)
