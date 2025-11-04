@@ -69,12 +69,11 @@ class Printer:
     def print(self, msg):
         print(msg)
 
-    def print_parameter(self, arg_name, short_help, arg_type, has_default=False, default=None):
-        if has_default:
-            self.print(f"  {arg_name} - {arg_type} - (Default: {default}) {short_help}")
+    def print_argument(self, arg):
+        if arg.has_default:
+            self.print(f"  {arg.name} - {arg.type} - (Default: {arg.default}) {arg.short_help}")
         else:
-            self.print(f"  {arg_name} - {arg_type} - {short_help}")
-
+            self.print(f"  {arg.name} - {arg.type} - {arg.short_help}")
 
     def make_url(self, name):
         return name
@@ -385,21 +384,23 @@ class Task(Helper):
         args = argdata.args
         defaults = argdata.defaults
 
+        if argdata.annotations:
+            self.annotations = argdata.annotations
+
         args2 = copy(args)
         if defaults:
             for arg, default in zip(args[0 - len(defaults) :], defaults):
                 args2.remove(arg)
                 short = self.short.get(arg, None)
                 name = self.overwrite.get(arg, None)
-                self.optional_args.append(ArgumentOptional(self.printer, arg, default, name, short))
+                self.optional_args.append(ArgumentOptional(self.printer, arg, default, name, short, type=self.annotations.get(arg, "")))
         for arg in args2:
-            self.args.append(Argument(self.printer, arg))
+            self.args.append(Argument(self.printer, arg, type=self.annotations.get(arg, "")))
 
         if argdata.varargs:
             self.varargs = Varargs(self.printer, argdata.varargs)
 
-        if argdata.annotations:
-            self.annotations = argdata.annotations
+
 
     def _clean_args(self):
         for arg in self.optional_args:
@@ -490,7 +491,7 @@ class Task(Helper):
             self.printer.args_begin()
             self.printer.print("Positional arguments:")
             for arg in self.args:
-                self.printer.print_parameter(arg.name, arg.short_help, self.annotations.get(arg.name, ""))
+                self.printer.print_argument(arg)
             self.printer.args_end()
 
         if self.optional_args:
@@ -500,23 +501,18 @@ class Task(Helper):
                 arg_name = "--{}".format(arg.name)
                 if arg.short:
                     arg_name = "{}/-{}".format(arg_name, arg.short)
-                arg_type = self._get_type_of_optional_argument(arg)
-                self.printer.print_parameter(arg.name, arg.short_help, arg_type, True, arg.default)
+                self.printer.print_argument(arg)
             self.printer.optional_args_end()
 
 
         if self.varargs:
             self.printer.print("Variable arguments:")
             self.printer.varargs_begin()
-            self.printer.print_parameter(self.varargs.name, arg.short_help, "", False)
+            self.printer.print_argument(self.varargs)
             self.printer.varargs_end()
 
         self.printer.args_section_end()
 
-    def _get_type_of_optional_argument(self, arg):
-        if arg.default is not None:
-            return arg.default.__class__
-        return self.annotations.get(arg.name, "")
 
     def _args_value(self):
         only_string_parameters = [arg.value for arg in self.all_args] + ([] if not self.varargs else self.varargs.value)
@@ -586,12 +582,14 @@ class Task(Helper):
 
 
 class Argument(Helper):
-    def __init__(self, printer, arg_python, name=None, short=None):
+    def __init__(self, printer, arg_python, name=None, short=None, type=None):
         super().__init__(printer)
         self.arg_python = arg_python
         self.name = name or arg_python
         self.short = short
         self._value = None
+        self.type = type
+        self.has_default = False
 
     @property
     def value(self):
@@ -606,12 +604,16 @@ class Argument(Helper):
 
 
 class ArgumentOptional(Argument):
-    def __init__(self, printer, arg_python, default, name=None, short=None):
+    def __init__(self, printer, arg_python, default, name=None, short=None, type=None):
         if isinstance(default, bool) and default:
             if not name:
                 name = "no-{}".format(arg_python)
 
-        super().__init__(printer, arg_python, name, short)
+        if default is not None:
+            type = default.__class__
+
+        super().__init__(printer, arg_python, name, short, type)
+        self.has_default = True
         self.default = default
         self.is_set = False
 
@@ -655,7 +657,7 @@ class ArgumentOptional(Argument):
 
 class Varargs(Argument):
     def __init__(self, printer, arg_python, name=None, short=None):
-        super().__init__(printer, arg_python, name, short)
+        super().__init__(printer, arg_python, name, short, type=[].__class__)
         self._value = []
 
 
