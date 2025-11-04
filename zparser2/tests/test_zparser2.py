@@ -25,17 +25,16 @@ class TestZParser(unittest.TestCase):
         # test help message
         self.assertEqual(t.help, "my help")
 
-
     def test_add_task_twice(self):
         def my_task():
             pass
+
         a_task = Task(my_task, "my_task", None, None, Printer())
         p = Plugin("a_plugin", Printer())
         p.add_task(a_task)
 
         with self.assertRaises(TaskAlreadyExistOnThisPluginException):
             p.add_task(a_task)
-
 
     def test_task_positional_arg(self):
         def my_func(arg1, arg2, arg3=None):
@@ -106,9 +105,7 @@ class TestZParser(unittest.TestCase):
             pass
 
         self._load_task("plug", my_func)
-        task = z.parse(
-            ["wcli.py", "plug", "my_func", "value1", "value2", "value3", "value4"]
-        )
+        task = z.parse(["wcli.py", "plug", "my_func", "value1", "value2", "value3", "value4"])
         self.assertArgsValue(task, ["value1", "value2", "value3", "value4"])
 
     def test_parser_none_value(self):
