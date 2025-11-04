@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.12"
+__version__ = "0.0.13"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):
@@ -162,7 +162,7 @@ class ZParser(Helper):
                 print(self.plugins[PYTHON_MAIN].help)
             print("{} <task>".format(self.prog_name))
 
-        if len(self.plugins) > 2 or ( has_main == False and len(self.plugins) > 1):
+        if len(self.plugins) > 2 or ( has_main == False and len(self.plugins) >= 1):
             print("{} <plugin_name> <task>".format(self.prog_name))
             print("Plugin list:")
             for plugin in [value for (key, value) in sorted(self.plugins.items())]:
