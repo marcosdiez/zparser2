@@ -519,16 +519,16 @@ class Task(Helper):
         return parsed_paramenters
 
     def _enforce_variable_annotations(self, parsed_paramenters):
-        if len(parsed_paramenters) <= len(self.all_args):
-            for i in range(len(parsed_paramenters)):
-                param_name = str(self.all_args[i])
-                param_class = self.annotations.get(param_name)
-                if param_class is not None:
-                    param_value = parsed_paramenters[i]
-                    if isinstance(param_value, param_class) or param_value.__class__ == int and param_class == float:
-                        continue
-                    else:
-                        raise ArgumentException(f"Invalid value for paramter {param_name}. A {param_class} is expected, not {param_value.__class__}")
+        for i in range(min(len(self.all_args), len(parsed_paramenters))):
+            param_name = str(self.all_args[i])
+            param_class = self.annotations.get(param_name)
+
+            if param_class is not None:
+                param_value = parsed_paramenters[i]
+                if isinstance(param_value, param_class) or param_value.__class__ == int and param_class == float:
+                    continue
+                else:
+                    raise ArgumentException(f"Invalid value for paramter {param_name}. A {param_class} is expected, not {param_value.__class__}")
 
     def _parse_floats_and_ints_in_a_list(self, the_list):
         size = len(the_list)
@@ -625,7 +625,10 @@ class ArgumentOptional(Argument):
             else:
                 self.print_help("Invalid data, expect boolean for arg: {}".format(self.name))
         elif isinstance(self.default, int):
-            return int(self._value)
+            try:
+                return int(self._value)
+            except ValueError:
+                self.print_help("Invalid data, expect integer for arg: {}".format(self.name))
         elif isinstance(self.default, list):
             result = []
             for i in self._value.split(","):

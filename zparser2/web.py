@@ -57,14 +57,14 @@ class WebPrinter(Printer):
 
         default_value_text = ""
         if default is not None:
-            default_value_text = f" value='{default}' "
+            default_value_text = f' value="{default}" '
 
         if arg_type is int:
-            form_value =f"<input <input type='number' step='1' name='{arg_name}' {default_value_text} />"
+            form_value =f'<input type="number" step="1" name="{arg_name}" {default_value_text} />'
         elif arg_type is float:
-            form_value =f"<input <input type='number' name='{arg_name}' {default_value_text} />"
+            form_value =f'<input type="number"          name="{arg_name}" {default_value_text} />'
         else:
-            form_value =f"<input type='text' name='{arg_name}' {default_value_text} />"
+            form_value =f'<input type="text"            name="{arg_name}" {default_value_text} />'
 
         if has_default:
             self.print(f"<tr><th>{arg_name}</th><td>{arg_type_text}</td><td>{default}</td><td>{short_help}</td><td>{form_value}</td></tr>")
