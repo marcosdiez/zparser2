@@ -7,45 +7,54 @@ from inspect import getfullargspec
 
 __version__ = "0.0.14"
 
+
 def extracted_arg_name(arg):
-        if arg.startswith('--'):
-            return arg[2:]
-        elif arg.startswith('-'):
-            return arg[1:]
-        else:
-            return arg
+    if arg.startswith("--"):
+        return arg[2:]
+    elif arg.startswith("-"):
+        return arg[1:]
+    else:
+        return arg
+
 
 def is_help(value):
-    return value in ('h', 'help')
+    return value in ("h", "help")
+
 
 def is_setting(value):
-    return value in ('s', 'setting')
+    return value in ("s", "setting")
+
 
 def is_quiet(value):
-    return value in ('q', 'quiet')
+    return value in ("q", "quiet")
+
 
 def is_optional(arg):
-    return arg.startswith('-')
+    return arg.startswith("-")
 
 
-ENDC = '\033[0m'
-BOLD = '\033[1m'
-RED = '\033[91m'
+ENDC = "\033[0m"
+BOLD = "\033[1m"
+RED = "\033[91m"
 
 RST_PARAM_RE = re.compile(r"^([\t ]*):param (.*?): (.*\n(\1[ \t]+.*\n*)*)", re.MULTILINE)
 PYTHON_MAIN = "__main__"
+
 
 class ZExitException(Exception):
     def __init__(self, exit_code):
         self.exit_code = exit_code
 
+
 def zexit(exit_code):
     # print(f"zexit(exit_code={exit_code})")
     raise ZExitException(exit_code)
 
+
 class ArgumentException(Exception):
     def __init__(self, error_msg=None):
         self.error_msg = error_msg
+
 
 class TaskAlreadyExistOnThisPluginException(Exception):
     def __init__(self, plugin_name, task_name):
@@ -53,6 +62,7 @@ class TaskAlreadyExistOnThisPluginException(Exception):
         self.task_name = task_name
         self.message = f"ERROR: Plugin {plugin_name} already has a task called {task_name}."
         super().__init__(self.message)
+
 
 class Printer:
     def print(self, msg):
@@ -70,7 +80,7 @@ class Helper:
     def print_help(self, error_msg=None):
         if error_msg:
             self.printer.print(BOLD + RED + error_msg + ENDC)
-            self.printer.print('-'*80)
+            self.printer.print("-" * 80)
         self.usage()
         if error_msg:
             zexit(1)
@@ -110,8 +120,7 @@ class ZParser(Helper):
                 self.printer.print(module)
                 continue
             plugin_dir = os.path.dirname(loaded.__file__)
-            plugin_list = [filename[:-3] for filename in os.listdir(plugin_dir) if filename[-3:] == '.py'
-                           and filename != '__init__.py']
+            plugin_list = [filename[:-3] for filename in os.listdir(plugin_dir) if filename[-3:] == ".py" and filename != "__init__.py"]
             # create dict entry before loading them
             for plugin_name in plugin_list:
                 self.plugins[plugin_name] = Plugin(plugin_name, self.printer)
@@ -143,7 +152,7 @@ class ZParser(Helper):
         if not function:
             return lambda function: self.task(function, name=name, overwrite=overwrite, short=short)
 
-        plugin_name = function.__module__.split('.')[-1]
+        plugin_name = function.__module__.split(".")[-1]
         self._register(plugin_name, function, name, overwrite, short)
         return function
 
@@ -161,7 +170,6 @@ class ZParser(Helper):
             self.plugins[plugin_name].help = sys.modules[function.__module__].__doc__ or ""
         self.plugins[plugin_name].add_task(task)
 
-
     def usage(self):
         has_main = PYTHON_MAIN in self.plugins
         if has_main:
@@ -169,7 +177,7 @@ class ZParser(Helper):
                 self.printer.print(self.plugins[PYTHON_MAIN].help)
             self.printer.print("{} <task>".format(self.prog_name))
 
-        if len(self.plugins) > 2 or ( has_main == False and len(self.plugins) >= 1):
+        if len(self.plugins) > 2 or (has_main == False and len(self.plugins) >= 1):
             self.printer.print("{} <plugin_name> <task>".format(self.prog_name))
             self.printer.print("Plugin list:")
             for plugin in [value for (key, value) in sorted(self.plugins.items())]:
@@ -338,10 +346,9 @@ class Task(Helper):
         args = argdata.args
         defaults = argdata.defaults
 
-
         args2 = copy(args)
         if defaults:
-            for arg, default in zip(args[0 - len(defaults):], defaults):
+            for arg, default in zip(args[0 - len(defaults) :], defaults):
                 args2.remove(arg)
                 short = self.short.get(arg, None)
                 name = self.overwrite.get(arg, None)
@@ -354,7 +361,6 @@ class Task(Helper):
 
         if argdata.annotations:
             self.annotations = argdata.annotations
-
 
     def _clean_args(self):
         for arg in self.optional_args:
@@ -384,8 +390,7 @@ class Task(Helper):
                             current_arg = None
                         else:
                             if in_optional:
-                                self.print_help("Error we don't expect a positional argument after an optional "
-                                                "declaration")
+                                self.print_help("Error we don't expect a positional argument after an optional " "declaration")
                             self.all_args[arg_pos].value = value
                         arg_pos += 1
                         valid = True
@@ -418,7 +423,7 @@ class Task(Helper):
 
     @property
     def plugin(self):
-        return self.function.__module__.split('.')[-1]
+        return self.function.__module__.split(".")[-1]
 
     def usage(self):
         self.printer.print(self.help)
@@ -562,9 +567,9 @@ class ArgumentOptional(Argument):
         if type(self._value) == type(self.default):
             return self._value
         if isinstance(self.default, bool):
-            if self._value.lower() in ['true', '1']:
+            if self._value.lower() in ["true", "1"]:
                 return True
-            elif self._value.lower() in ['false', '0']:
+            elif self._value.lower() in ["false", "0"]:
                 return False
             else:
                 self.print_help("Invalid data, expect boolean for arg: {}".format(self.name))
@@ -572,7 +577,7 @@ class ArgumentOptional(Argument):
             return int(self._value)
         elif isinstance(self.default, list):
             result = []
-            for i in self._value.split(','):
+            for i in self._value.split(","):
                 result.append(i)
             return result
         return self._value
@@ -589,15 +594,17 @@ class Varargs(Argument):
         self._value = []
 
 
-def init(plugin_list: list=[]) -> int:
+def init(plugin_list: list = []) -> int:
     return zparser2_init(plugin_list)
 
-def zparser2_init(plugin_list: list=[]) -> int:
+
+def zparser2_init(plugin_list: list = []) -> int:
     global z
     try:
         z.set_plugin_module(plugin_list).parse().run()
     except ZExitException as exit_exception:
         sys.exit(exit_exception.exit_code)
     sys.exit(0)
+
 
 z = ZParser()
