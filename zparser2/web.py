@@ -58,7 +58,15 @@ class WebPrinter(Printer):
 
         default_value_text = ""
         if arg.has_default and arg.default is not None:
-            default_value_text = f' value="{arg.default}" '
+            if isinstance(arg.default, list):
+                default_value_text = ""
+                for i in range(0, len(arg.default)):
+                    default_value_text += f"{arg.default[i]}"
+                    if i != len(arg.default):
+                        default_value_text += ","
+                default_value_text = f' value="{default_value_text}" '
+            else:
+                default_value_text = f' value="{arg.default}" '
 
         if arg.type is int:
             form_value =f'<input type="number" step="1" name="{arg.name}" {default_value_text} />'
