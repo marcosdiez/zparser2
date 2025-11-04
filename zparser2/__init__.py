@@ -455,7 +455,8 @@ class Task(Helper):
         if self.args:
             self.printer.print("Positional arguments:")
             for arg in self.args:
-                self.printer.print("  {} - {} {}".format(arg.name, arg.short_help, self.annotations.get(arg.name, "")))
+                x = self.annotations.get(arg.name, "")
+                self.printer.print("  {} - {} {}".format(arg.name, arg.short_help, self.annotations.get(arg.name, "").__name__))
 
         if self.optional_args:
             self.printer.print("Optional arguments:")

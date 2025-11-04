@@ -46,7 +46,7 @@ def zparser2_run(request_path: str):
     z.printer.running = False
 
 
-def zparser2_web_init(request_path: str, python_main: str, plugin_list: list = []):
+def zparser2_web_init(request_path: str, plugin_list: list = []):
     z.printer.__class__ = WebPrinter  # yes, we monkeypatch !
     z.printer.init()
     z.set_plugin_module(plugin_list)
