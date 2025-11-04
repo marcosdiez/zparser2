@@ -18,15 +18,15 @@ class WebPrinter(Printer):
     def display(self):
         yield self.q.get()
 
-    def print(self, msg):
+    def print(self, msg: str):
         # print(f"WebPrinter({msg})")
         self.q.put(msg)
 
-    def make_url(self, name):
+    def make_url(self, name: str):
         return f"<a href='{name}/'>{name}</a>"
 
 
-def process_path(request_path):
+def process_path(request_path: str):
     result = []
     for elem in request_path.split("/"):
         if elem != "":
@@ -34,7 +34,7 @@ def process_path(request_path):
     return result
 
 
-def zparser2_run(request_path):
+def zparser2_run(request_path: str):
     # argv = request_path.split("/")[1:]
     argv = process_path(request_path)
     argv = ["zparser_web"] + argv
@@ -46,7 +46,7 @@ def zparser2_run(request_path):
     z.printer.running = False
 
 
-def zparser2_web_init(request_path, plugin_list: list = []):
+def zparser2_web_init(request_path: str, python_main: str, plugin_list: list = []):
     z.printer.__class__ = WebPrinter  # yes, we monkeypatch !
     z.printer.init()
     z.set_plugin_module(plugin_list)
