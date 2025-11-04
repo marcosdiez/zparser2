@@ -5,7 +5,7 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
-__version__ = "0.0.13"
+__version__ = "0.0.14"
 
 def extracted_arg_name(arg):
         if arg.startswith('--'):
@@ -40,6 +40,7 @@ class ZExitException(Exception):
         self.exit_code = exit_code
 
 def zexit(exit_code):
+    # print(f"zexit(exit_code={exit_code})")
     raise ZExitException(exit_code)
 
 class ArgumentException(Exception):
@@ -53,17 +54,23 @@ class TaskAlreadyExistOnThisPluginException(Exception):
         self.message = f"ERROR: Plugin {plugin_name} already has a task called {task_name}."
         super().__init__(self.message)
 
+class Printer:
+    def print(self, msg):
+        print(msg)
+
+
 class Helper:
-    def __init__(self):
+    def __init__(self, printer):
         self.help = ""
+        self.printer = printer
 
     def usage(self):
         pass
 
     def print_help(self, error_msg=None):
         if error_msg:
-            print(BOLD + RED + error_msg + ENDC)
-            print('-'*80)
+            self.printer.print(BOLD + RED + error_msg + ENDC)
+            self.printer.print('-'*80)
         self.usage()
         if error_msg:
             zexit(1)
@@ -77,11 +84,11 @@ class Helper:
 
 
 class ZParser(Helper):
-    def __init__(self, plugin_module=None):
+    def __init__(self, plugin_module=None, printer=None):
         if plugin_module is None:
             plugin_module = []
 
-        super(ZParser, self).__init__()
+        super().__init__(printer=Printer())
 
         self.plugin_module = None
         self.plugins = {}
@@ -99,15 +106,15 @@ class ZParser(Helper):
         for module in self.plugin_module:
             loaded = importlib.import_module(module)
             if loaded.__file__ is None:
-                print("bin")
-                print(module)
+                self.printer.print("bin")
+                self.printer.print(module)
                 continue
             plugin_dir = os.path.dirname(loaded.__file__)
             plugin_list = [filename[:-3] for filename in os.listdir(plugin_dir) if filename[-3:] == '.py'
                            and filename != '__init__.py']
             # create dict entry before loading them
             for plugin_name in plugin_list:
-                self.plugins[plugin_name] = Plugin(plugin_name)
+                self.plugins[plugin_name] = Plugin(plugin_name, self.printer)
 
             for plugin_name in plugin_list:
                 # loaded_plugin = importlib.import_module("{}.{}".format(module, plugin))
@@ -116,7 +123,7 @@ class ZParser(Helper):
                     loaded_plugin = importlib.import_module("{}.{}".format(module, plugin_name))
                 except ImportError as e:
                     del self.plugins[plugin_name]
-                    print("Failed to load plugin {}.{} [{}]".format(module, plugin_name, e))
+                    self.printer.print("Failed to load plugin {}.{} [{}]".format(module, plugin_name, e))
                     raise
                 else:
                     try:
@@ -147,9 +154,9 @@ class ZParser(Helper):
         if short is None:
             short = {}
 
-        task = Task(function, name, overwrite, short)
+        task = Task(function, name, overwrite, short, self.printer)
         if plugin_name not in self.plugins:
-            self.plugins[plugin_name] = Plugin(plugin_name)
+            self.plugins[plugin_name] = Plugin(plugin_name, self.printer)
             self.plugins[plugin_name].alias = sys.modules[function.__module__].__dict__.get("alias", [])
             self.plugins[plugin_name].help = sys.modules[function.__module__].__doc__ or ""
         self.plugins[plugin_name].add_task(task)
@@ -159,18 +166,18 @@ class ZParser(Helper):
         has_main = PYTHON_MAIN in self.plugins
         if has_main:
             if len(self.plugins[PYTHON_MAIN].help) > 0:
-                print(self.plugins[PYTHON_MAIN].help)
-            print("{} <task>".format(self.prog_name))
+                self.printer.print(self.plugins[PYTHON_MAIN].help)
+            self.printer.print("{} <task>".format(self.prog_name))
 
         if len(self.plugins) > 2 or ( has_main == False and len(self.plugins) >= 1):
-            print("{} <plugin_name> <task>".format(self.prog_name))
-            print("Plugin list:")
+            self.printer.print("{} <plugin_name> <task>".format(self.prog_name))
+            self.printer.print("Plugin list:")
             for plugin in [value for (key, value) in sorted(self.plugins.items())]:
                 if plugin.name != PYTHON_MAIN:
-                    print("  {:20} - {}".format(plugin.name, plugin.short_help))
+                    self.printer.print("  {:20} - {}".format(plugin.name, plugin.short_help))
 
         if has_main:
-            print("Tasks:")
+            self.printer.print("Tasks:")
             self.plugins[PYTHON_MAIN].list_tasks()
 
     def parse(self, argv=None, prog_name=None):
@@ -240,8 +247,8 @@ class ZParser(Helper):
 
 
 class Plugin(Helper):
-    def __init__(self, name):
-        super(Plugin, self).__init__()
+    def __init__(self, name, printer):
+        super().__init__(printer)
         self.name = name
         self.alias = []
         self.tasks = {}
@@ -256,19 +263,19 @@ class Plugin(Helper):
         return "{}".format(self.tasks)
 
     def usage(self):
-        print(self.help)
+        self.printer.print(self.help)
 
         if self.name == PYTHON_MAIN:
-            print("{} <task>".format(z.prog_name))
+            self.printer.print("{} <task>".format(z.prog_name))
         else:
-            print("{} {} <task>".format(z.prog_name, self.name))
-        print("Plugin alias: {}".format(self.alias))
-        print("Tasks:")
+            self.printer.print("{} {} <task>".format(z.prog_name, self.name))
+        self.printer.print("Plugin alias: {}".format(self.alias))
+        self.printer.print("Tasks:")
         self.list_tasks()
 
     def list_tasks(self):
         for task in [value for (key, value) in sorted(self.tasks.items())]:
-            print("  {:20} - {}".format(task.name, task.short_help))
+            self.printer.print("  {:20} - {}".format(task.name, task.short_help))
 
     def parse(self, argv=None):
         if not argv:
@@ -295,8 +302,8 @@ class Plugin(Helper):
 
 
 class Task(Helper):
-    def __init__(self, function, name, overwrite, short):
-        super(Task, self).__init__()
+    def __init__(self, function, name, overwrite, short, printer):
+        super().__init__(printer)
         if name is None:
             name = function.__name__
         self.function = function
@@ -338,12 +345,12 @@ class Task(Helper):
                 args2.remove(arg)
                 short = self.short.get(arg, None)
                 name = self.overwrite.get(arg, None)
-                self.optional_args.append(ArgumentOptional(arg, default, name, short))
+                self.optional_args.append(ArgumentOptional(self.printer, arg, default, name, short))
         for arg in args2:
-            self.args.append(Argument(arg))
+            self.args.append(Argument(self.printer, arg))
 
         if argdata.varargs:
-            self.varargs = Varargs(argdata.varargs)
+            self.varargs = Varargs(self.printer, argdata.varargs)
 
         if argdata.annotations:
             self.annotations = argdata.annotations
@@ -414,8 +421,8 @@ class Task(Helper):
         return self.function.__module__.split('.')[-1]
 
     def usage(self):
-        print(self.help)
-        print("Usage:")
+        self.printer.print(self.help)
+        self.printer.print("Usage:")
         parameters = []
         for arg in self.all_args:
             if isinstance(arg, ArgumentOptional):
@@ -430,24 +437,24 @@ class Task(Helper):
             parameters.append("[{p}, [{p}...]".format(p=self.varargs.name))
 
         if self.plugin == PYTHON_MAIN:
-            print("  {} {} {}".format(z.prog_name, self.name, " ".join(parameters)))
+            self.printer.print("  {} {} {}".format(z.prog_name, self.name, " ".join(parameters)))
         else:
-            print("  {} {} {} {}".format(z.prog_name, self.plugin, self.name, " ".join(parameters)))
+            self.printer.print("  {} {} {} {}".format(z.prog_name, self.plugin, self.name, " ".join(parameters)))
         if self.args:
-            print("Positional arguments:")
+            self.printer.print("Positional arguments:")
             for arg in self.args:
-                print("  {} - {} {}".format(arg.name, arg.short_help, self.annotations.get(arg.name, "")))
+                self.printer.print("  {} - {} {}".format(arg.name, arg.short_help, self.annotations.get(arg.name, "")))
 
         if self.optional_args:
-            print("Optional arguments:")
+            self.printer.print("Optional arguments:")
             for arg in self.optional_args:
                 arg_name = "--{}".format(arg.name)
                 if arg.short:
                     arg_name = "{}/-{}".format(arg_name, arg.short)
-                print("  {} (Default: {}) {} - {}".format(arg_name, arg.default, self.annotations.get(arg.name, ""), arg.short_help))
+                self.printer.print("  {} (Default: {}) {} - {}".format(arg_name, arg.default, self.annotations.get(arg.name, ""), arg.short_help))
 
         if self.varargs:
-            print("  {} - {}".format(self.varargs.name, self.varargs.short_help))
+            self.printer.print("  {} - {}".format(self.varargs.name, self.varargs.short_help))
 
     def _args_value(self):
         only_string_parameters = [arg.value for arg in self.all_args] + ([] if not self.varargs else self.varargs.value)
@@ -502,23 +509,23 @@ class Task(Helper):
                             else:
                                 x.append(r)
                         output = " ".join(x)
-                        print(output)
+                        self.printer.print(output)
                     else:
                         for r in result:
-                            print(r)
+                            self.printer.print(r)
                 elif isinstance(result, dict):
                     for key, value in result.items():
-                        print("{}\t{}".format(key, value))
+                        self.printer.print("{}\t{}".format(key, value))
                 else:
-                    print(result)
+                    self.printer.print(result)
 
     def __repr__(self):
         return self.name
 
 
 class Argument(Helper):
-    def __init__(self, arg_python, name=None, short=None):
-        super(Argument, self).__init__()
+    def __init__(self, printer, arg_python, name=None, short=None):
+        super().__init__(printer)
         self.arg_python = arg_python
         self.name = name or arg_python
         self.short = short
@@ -537,12 +544,12 @@ class Argument(Helper):
 
 
 class ArgumentOptional(Argument):
-    def __init__(self, arg_python, default, name=None, short=None):
+    def __init__(self, printer, arg_python, default, name=None, short=None):
         if isinstance(default, bool) and default:
             if not name:
                 name = "no-{}".format(arg_python)
 
-        super(ArgumentOptional, self).__init__(arg_python, name, short)
+        super().__init__(printer, arg_python, name, short)
         self.default = default
         self.is_set = False
 
@@ -577,8 +584,8 @@ class ArgumentOptional(Argument):
 
 
 class Varargs(Argument):
-    def __init__(self, arg_python, name=None, short=None):
-        super(Varargs, self).__init__(arg_python, name, short)
+    def __init__(self, printer, arg_python, name=None, short=None):
+        super().__init__(printer, arg_python, name, short)
         self._value = []
 
 
