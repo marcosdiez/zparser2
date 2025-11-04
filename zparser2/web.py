@@ -52,32 +52,25 @@ class WebPrinter(Printer):
     def varargs_end(self):
         self.print("</table>")
 
-    def print_parameter(self, arg_name, short_help, arg_type, has_default=False, default=None):
-        arg_type_text = f"{arg_type}".replace("<", "&lt;").replace(">", "&gt;")
+    def print_argument(self, arg):
+
+        arg_type_text = f"{arg.type}".replace("<", "&lt;").replace(">", "&gt;")
 
         default_value_text = ""
-        if default is not None:
-            default_value_text = f' value="{default}" '
+        if arg.has_default and arg.default is not None:
+            default_value_text = f' value="{arg.default}" '
 
-        if arg_type is int:
-            form_value =f'<input type="number" step="1" name="{arg_name}" {default_value_text} />'
-        elif arg_type is float:
-            form_value =f'<input type="number"          name="{arg_name}" {default_value_text} />'
+        if arg.type is int:
+            form_value =f'<input type="number" step="1" name="{arg.name}" {default_value_text} />'
+        elif arg.type is float:
+            form_value =f'<input type="number"          name="{arg.name}" {default_value_text} />'
         else:
-            form_value =f'<input type="text"            name="{arg_name}" {default_value_text} />'
+            form_value =f'<input type="text"            name="{arg.name}" {default_value_text} />'
 
-        if has_default:
-            self.print(f"<tr><th>{arg_name}</th><td>{arg_type_text}</td><td>{default}</td><td>{short_help}</td><td>{form_value}</td></tr>")
+        if arg.has_default:
+            self.print(f"<tr><th>{arg.name}</th><td>{arg_type_text}</td><td>{arg.default}</td><td>{arg.short_help}</td><td>{form_value}</td></tr>")
         else:
-            self.print(f"<tr><th>{arg_name}</th><td>{arg_type_text}</td><td>{short_help}</td><td>{form_value}</td></tr>")
-
-
-        #     print("BING")
-        #
-        # if has_default:
-        #     self.print(f"  {arg_name} - {arg_type} - (Default: {default}) {short_help}")
-        # else:
-        #     self.print(f"  {arg_name} - {arg_type} - {short_help}")
+            self.print(f"<tr><th>{arg.name}</th><td>{arg_type_text}</td><td>{arg.short_help}</td><td>{form_value}</td></tr>")
 
 
 def process_path(request_path: str):
