@@ -69,8 +69,40 @@ class Printer:
     def print(self, msg):
         print(msg)
 
+    def print_parameter(self, arg_name, short_help, arg_type, has_default=False, default=None):
+        if has_default:
+            self.print(f"  {arg_name} - {arg_type} - (Default: {default}) {short_help}")
+        else:
+            self.print(f"  {arg_name} - {arg_type} - {short_help}")
+
+
     def make_url(self, name):
         return name
+
+    def args_section_begin(self):
+        pass
+
+    def args_section_end(self):
+        pass
+
+    def args_begin(self):
+        pass
+
+    def args_end(self):
+        pass
+
+    def optional_args_begin(self):
+        pass
+
+    def optional_args_end(self):
+        pass
+
+    def varargs_begin(self):
+        pass
+
+    def varargs_end(self):
+        pass
+
 
 
 class Helper:
@@ -452,29 +484,33 @@ class Task(Helper):
             self.printer.print("  {} {} {}".format(z.prog_name, self.name, " ".join(parameters)))
         else:
             self.printer.print("  {} {} {} {}".format(z.prog_name, self.plugin, self.name, " ".join(parameters)))
+
+        self.printer.args_section_begin()
         if self.args:
+            self.printer.args_begin()
             self.printer.print("Positional arguments:")
             for arg in self.args:
-                x = self.annotations.get(arg.name, "")
-                self.printer.print("  {} - {} {}".format(arg.name, arg.short_help, self.annotations.get(arg.name, "").__name__))
+                self.printer.print_parameter(arg.name, arg.short_help, self.annotations.get(arg.name, ""))
+            self.printer.args_end()
 
         if self.optional_args:
+            self.printer.optional_args_begin()
             self.printer.print("Optional arguments:")
             for arg in self.optional_args:
                 arg_name = "--{}".format(arg.name)
                 if arg.short:
                     arg_name = "{}/-{}".format(arg_name, arg.short)
-                self.printer.print(
-                    "  {} (Default: {}) {} - {}".format(
-                        arg_name,
-                        arg.default,
-                        self.annotations.get(arg.name, ""),
-                        arg.short_help,
-                    )
-                )
+                self.printer.print_parameter(arg.name, arg.short_help, self.annotations.get(arg.name, ""), True, arg.default)
+            self.printer.optional_args_end()
+
 
         if self.varargs:
-            self.printer.print("  {} - {}".format(self.varargs.name, self.varargs.short_help))
+            self.printer.print("Variable arguments:")
+            self.printer.varargs_begin()
+            self.printer.print_parameter(self.varargs.name, arg.short_help, "", False)
+            self.printer.varargs_end()
+
+        self.printer.args_section_end()
 
     def _args_value(self):
         only_string_parameters = [arg.value for arg in self.all_args] + ([] if not self.varargs else self.varargs.value)

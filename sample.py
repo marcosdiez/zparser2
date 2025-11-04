@@ -7,11 +7,12 @@ import local_module
 
 
 @z.task
-def task_on_the_main_file(somestring: str, some_int: int, workdir=None, root_url=None):
+def task_on_the_main_file(somestring: str, some_int: int, some_float: float, workdir=None, root_url=None):
     "description of the task"
     print("this is task_on_the_main_file")
     print(f"somestring={somestring}")
     print(f"some_int={some_int}")
+    print(f"some_float={some_float}")
     print(f"workdir={workdir}")
     print(f"root_url={root_url}")
 
