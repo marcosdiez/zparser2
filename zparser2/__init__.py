@@ -33,10 +33,6 @@ def is_optional(arg):
     return arg.startswith("-")
 
 
-ENDC = "\033[0m"
-BOLD = "\033[1m"
-RED = "\033[91m"
-
 RST_PARAM_RE = re.compile(r"^([\t ]*):param (.*?): (.*\n(\1[ \t]+.*\n*)*)", re.MULTILINE)
 PYTHON_MAIN = "__main__"
 
@@ -65,8 +61,16 @@ class TaskAlreadyExistOnThisPluginException(Exception):
 
 
 class Printer:
+    END_BOLD = "\033[0m"
+    END_RED = "\033[0m"
+    BOLD = "\033[1m"
+    RED = "\033[91m"
+
     def print(self, msg):
         print(msg)
+
+    def make_url(self, name):
+        return name
 
 
 class Helper:
@@ -79,7 +83,7 @@ class Helper:
 
     def print_help(self, error_msg=None):
         if error_msg:
-            self.printer.print(BOLD + RED + error_msg + ENDC)
+            self.printer.print(self.printer.BOLD + self.printer.RED + error_msg + self.printer.END_RED + self.printer.END_BOLD)
             self.printer.print("-" * 80)
         self.usage()
         if error_msg:
@@ -109,6 +113,9 @@ class ZParser(Helper):
 
     def __repr__(self):
         return self.plugins
+
+    def print(self, msg):
+        return self.printer.print(msg)
 
     def set_plugin_module(self, plugin_module):
         self.plugin_module = plugin_module
@@ -182,7 +189,7 @@ class ZParser(Helper):
             self.printer.print("Plugin list:")
             for plugin in [value for (key, value) in sorted(self.plugins.items())]:
                 if plugin.name != PYTHON_MAIN:
-                    self.printer.print("  {:20} - {}".format(plugin.name, plugin.short_help))
+                    self.printer.print("  {:20} - {}".format(self.printer.make_url(plugin.name), plugin.short_help))
 
         if has_main:
             self.printer.print("Tasks:")
@@ -283,7 +290,7 @@ class Plugin(Helper):
 
     def list_tasks(self):
         for task in [value for (key, value) in sorted(self.tasks.items())]:
-            self.printer.print("  {:20} - {}".format(task.name, task.short_help))
+            self.printer.print("  {:20} - {}".format(self.printer.make_url(task.name), task.short_help))
 
     def parse(self, argv=None):
         if not argv:
@@ -456,7 +463,14 @@ class Task(Helper):
                 arg_name = "--{}".format(arg.name)
                 if arg.short:
                     arg_name = "{}/-{}".format(arg_name, arg.short)
-                self.printer.print("  {} (Default: {}) {} - {}".format(arg_name, arg.default, self.annotations.get(arg.name, ""), arg.short_help))
+                self.printer.print(
+                    "  {} (Default: {}) {} - {}".format(
+                        arg_name,
+                        arg.default,
+                        self.annotations.get(arg.name, ""),
+                        arg.short_help,
+                    )
+                )
 
         if self.varargs:
             self.printer.print("  {} - {}".format(self.varargs.name, self.varargs.short_help))
