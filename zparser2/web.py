@@ -13,7 +13,7 @@ class WebPrinter(Printer):
     def init(self):
         self.running = True
         self.q = queue.SimpleQueue()
-        self.print("<!DOCTYPE html><html><style>a { text-decoration: none; }</style><pre>")
+        self.print("<!DOCTYPE html><html><title>" + common.PYTHON_MAIN + "</title><style>a { text-decoration: none; }</style><pre>")
 
     def end(self):
         self.print("</pre></html>")
@@ -30,25 +30,26 @@ class WebPrinter(Printer):
     def print_escape(self, msg):
         return self.print(self.escape(msg))
 
-
-    def make_url(self, name: str):
-        return f"<a href='{name}/'>{name}</a>"
-
     def make_prog_url(self, name):
-        return f"<a href='../'>{name}</a>"
-
-    def make_prog_url2(self, name):
-        return f"<a href='../../'>{name}</a>"
+        return f"<a href='/'>{name}</a>"
 
     def make_plugin_url(self, name):
-        return f"<a href='../'>{name}</a>"
+        return f"<a href='/{name}/'>{name}</a>"
+
+    def make_task_url(self, plugin, task):
+        return f"<a href='/{plugin}/{task}/'>{task}</a>"
 
     def args_section_begin(self):
         self.print("<form name='one'>")
 
-    def args_section_end(self):
+    def args_section_end(self, prog_name, plugin_name, task_name):
+        base_url = f"/{plugin_name}/{task_name}/"
         self.print(
             """<script>
+        function getBaseUrl() {
+            return "BASE_URL";
+        }
+
         function buildParametersFromForm(){
             var output = ""
             for ( const elem of document.one.elements ) {
@@ -65,19 +66,14 @@ class WebPrinter(Printer):
         }
 
         function submitForm(){
-            const url_sufix = buildParametersFromForm()
-            var new_url = location.href;
-            if ( new_url[ new_url.length -1] != "/" ) {
-                new_url += "/";
-            }
-            new_url += url_sufix;
+            var new_url = getBaseUrl() + buildParametersFromForm();
             // alert(new_url);
             location.href = new_url;
             return false;
         }
         </script><input type="button" onclick="submitForm()" name='submit_button' value="Run" />
         </form>
-        """
+        """.replace("BASE_URL", base_url)
         )
 
     def args_begin(self):
@@ -102,7 +98,7 @@ class WebPrinter(Printer):
         self.print("</table>")
 
     def escape(self, msg):
-        return msg.replace("<", "&lt;").replace(">", "&gt;")
+        return f"{msg}".replace("<", "&lt;").replace(">", "&gt;")
 
     def print_argument(self, arg):
         arg_type_text = self.escape(f"{arg.type}")
@@ -138,10 +134,11 @@ class WebPrinter(Printer):
 
 
 def process_path(request_path: str):
-    result = []
-    for elem in request_path.split("/"):
-        if elem != "":
-            result.append(elem)
+    result = request_path.split("/")
+    if result[0] == "":
+        result = result[1:]
+    if result[-1] == "":
+        result = result[0:-1]
     return result
 
 

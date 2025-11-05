@@ -72,6 +72,9 @@ class Printer:
     def print(self, msg):
         print(msg)
 
+    def escape(self, msg):
+        return msg
+
     def print_escape(self, msg):
         return self.print(msg)
 
@@ -87,16 +90,16 @@ class Printer:
     def make_prog_url(self, name):
         return name
 
-    def make_prog_url2(self, name):
-        return name
-
     def make_plugin_url(self, name):
         return name
+
+    def make_task_url(self, plugin, task):
+        return task
 
     def args_section_begin(self):
         pass
 
-    def args_section_end(self):
+    def args_section_end(self, prog_name, plugin_name, task_name):
         pass
 
     def args_begin(self):
@@ -238,7 +241,7 @@ class ZParser(Helper):
             self.printer.print("Plugin list:")
             for plugin in [value for (key, value) in sorted(self.plugins.items())]:
                 if plugin.name != common.PYTHON_MAIN:
-                    self.printer.print("  {:20} - {}".format(self.printer.make_url(plugin.name), plugin.short_help))
+                    self.printer.print("  {:20} - {}".format(self.printer.make_plugin_url(plugin.name), plugin.short_help))
 
         if has_main:
             self.printer.print("Tasks:")
@@ -336,7 +339,7 @@ class Plugin(Helper):
 
     def list_tasks(self):
         for task in [value for (key, value) in sorted(self.tasks.items())]:
-            self.printer.print("  {:20} - {}".format(self.printer.make_url(task.name), task.short_help))
+            self.printer.print("  {:20} - {}".format(self.printer.make_task_url(self.name, task.name), task.short_help))
 
     def parse(self, argv=None):
         if not argv:
@@ -495,9 +498,9 @@ class Task(Helper):
             parameters.append("[{p}, [{p}...]".format(p=self.varargs.name))
 
         if self.plugin == common.PYTHON_MAIN:
-            self.printer.print("  {} {} {}".format(self.printer.make_prog_url2(z.prog_name), self.name, " ".join(parameters)))
+            self.printer.print("  {} {} {}".format(self.printer.make_prog_url(z.prog_name), self.name, " ".join(parameters)))
         else:
-            self.printer.print("  {} {} {} {}".format(self.printer.make_prog_url2(z.prog_name), self.printer.make_plugin_url(self.plugin), self.name, " ".join(parameters)))
+            self.printer.print("  {} {} {} {}".format(self.printer.make_prog_url(z.prog_name), self.printer.make_plugin_url(self.plugin), self.name, " ".join(parameters)))
 
         self.printer.args_section_begin()
         if self.args:
@@ -523,7 +526,7 @@ class Task(Helper):
             self.printer.print_argument(self.varargs)
             self.printer.varargs_end()
 
-        self.printer.args_section_end()
+        self.printer.args_section_end(z.prog_name, self.plugin, self.name)
 
     def _args_value(self):
         only_string_parameters = [arg.value for arg in self.all_args] + ([] if not self.varargs else self.varargs.value)
@@ -543,7 +546,7 @@ class Task(Helper):
                 elif param_class == bool and param_value is not None and param_value.lower() in ["true", "false"]:
                     continue
                 else:
-                    raise ArgumentException(f"Invalid value for parameter [{param_name}]. A [{param_class}] is expected, not [{param_value.__class__}/{param_value}]")
+                    raise ArgumentException(f"Invalid value for parameter [{param_name}]. A [{self.printer.escape(param_class)}] is expected, not [{self.printer.escape(param_value.__class__)} {param_value}]")
 
     def _parse_floats_and_ints_in_a_list(self, the_list):
         size = len(the_list)

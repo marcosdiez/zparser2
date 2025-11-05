@@ -19,7 +19,7 @@ def last_word(x: str):
 @z.task
 def another_task(somestring: str, some_int: int, workdir=None, root_url=None):
     """description of the task"""
-    print(f"somestring={somestring}")
-    print(f"some_int={some_int}")
-    print(f"workdir={workdir}")
-    print(f"root_url={root_url}")
+    z.print(f"somestring={somestring}")
+    z.print(f"some_int={some_int}")
+    z.print(f"workdir={workdir}")
+    z.print(f"root_url={root_url}")
