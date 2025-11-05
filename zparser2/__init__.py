@@ -43,7 +43,7 @@ class ZExitException(Exception):
 
 
 def zexit(exit_code):
-    # print(f"zexit(exit_code={exit_code})")
+    print(f"zexit(exit_code={exit_code})")
     raise ZExitException(exit_code)
 
 
@@ -245,13 +245,10 @@ class ZParser(Helper):
         if not argv or (argv and is_optional(argv[0]) and is_help(extracted_arg_name(argv[0]))):
             self.print_help()
             zexit(0)
-
         # parse global argument
         argv = self.parse_global(argv)
-
         if is_optional(argv[0]):
             self.print_help("This argument is unexpected {}".format(argv[0]))
-
         plugin, self.runner = self._load_plugin_and_runner_from_arg(argv)
         return self.runner
 
@@ -564,6 +561,7 @@ class Task(Helper):
         return the_list
 
     def run(self):
+        print("RUN IS RUNNING")
         try:
             result = self.function(*self._args_value())
         except ArgumentException as e:

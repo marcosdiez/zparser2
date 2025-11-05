@@ -137,26 +137,29 @@ def process_path(request_path: str):
     return result
 
 
-def zparser2_run(request_path: str):
+def zparser2_run(request_path: str, plugin_list: list):
     # argv = request_path.split("/")[1:]
     argv = process_path(request_path)
     argv = ["zparser_web"] + argv
-    # print(argv)
+
+    global z
     try:
-        z.parse(argv).run()
-    except ZExitException as e:
-        print(f"ZExitException(e={e})")
-    z.printer.end()
+        z.set_plugin_module(plugin_list).parse(argv).run()
+    except ZExitException as exit_exception:
+        z.printer.running = False
+        # print(f"sys.exit(exit_exception.exit_code={exit_exception.exit_code})")
+        return
+    z.printer.running = False
+    # print("sys.exit(0)")
+    return
+
 
 
 def zparser2_web_init(request_path: str, plugin_list: list = []):
     z.printer.__class__ = WebPrinter  # yes, we monkeypatch !
     z.printer.init()
-    z.set_plugin_module(plugin_list)
 
-    t = threading.Thread(target=zparser2_run, args=[request_path])
-
-    t.start()
+    threading.Thread(target=zparser2_run, args=[request_path, plugin_list]).start()
 
     while z.printer.running or not z.printer.q.empty():
         for msg in z.printer.display():

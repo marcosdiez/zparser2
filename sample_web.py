@@ -65,11 +65,9 @@ def page_not_found(error):
 
 
 if __name__ == "__main__":
-    zparser2_init(
-        [
-            "plugins",
-        ]
-    )
+    import sys
+    print(sys.argv)
+    zparser2_init(["plugins"])
 else:
     print(f"I am running on flask [{__name__}]")
 
