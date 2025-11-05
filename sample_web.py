@@ -26,21 +26,24 @@ def task_on_the_main_file(
     a_true_boolean = True,
     a_false_boolean = False,
     workdir2 : str = None,
-    root_url="http://blah",
+    given_string="blah-bleh-blih",
     *vararg,
 ):
     "description of the task"
-    print("this is task_on_the_main_file")
-    print(f"somestring={somestring}")
-    print(f"some_int={some_int}")
-    print(f"some_float={some_float}")
-    print(f"some_list={some_list}")
-    print(f"favorite_number={favorite_number}")
-    print(f"my_float={my_float}")
-    print(f"workdir={workdir}")
-    print(f"workdir2={workdir2}")
-    print(f"root_url={root_url}")
-    print(f"vararg={vararg}")
+    z.print("this is the function task_on_the_main_file")
+    z.print(f"somestring={somestring}")
+    z.print(f"some_int={some_int}")
+    z.print(f"some_float={some_float}")
+    z.print(f"some_boolean={some_boolean}")
+    z.print(f"some_list={some_list}")
+    z.print(f"favorite_number={favorite_number}")
+    z.print(f"my_float={my_float}")
+    z.print(f"workdir={workdir}")
+    z.print(f"a_true_boolean={a_true_boolean}")
+    z.print(f"a_false_boolean={a_false_boolean}")
+    z.print(f"workdir2={workdir2}")
+    z.print(f"given_string={given_string}")
+    z.print(f"vararg={vararg}")
 
 
 app = Flask(__name__)

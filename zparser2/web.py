@@ -13,23 +13,54 @@ class WebPrinter(Printer):
     def init(self):
         self.running = True
         self.q = queue.SimpleQueue()
-        self.print("<pre>\n")
+        self.print("<style>a { text-decoration: none; }</style><pre>")
 
     def display(self):
         yield self.q.get()
 
     def print(self, msg: str):
         # print(f"WebPrinter({msg})")
+        # self.q.put(f"[{msg}]")
         self.q.put(msg)
 
     def make_url(self, name: str):
         return f"<a href='{name}/'>{name}</a>"
 
     def args_section_begin(self):
-        self.print("<form>")
+        self.print("<form name='one'>")
 
     def args_section_end(self):
-        self.print("</form>")
+        self.print("""
+        <script>
+        function buildParametersFromForm(){
+            var output = ""
+            for ( const elem of document.one.elements ) {
+                if ( elem.name == "submit_button" ){
+                    continue;
+                }
+                if ( elem.type == "checkbox" ) {
+                    output += elem.checked + "/";
+                } else {
+                    output += elem.value + "/";
+                }
+            }
+            return output;
+        }
+
+        function submitForm(){
+            const url_sufix = buildParametersFromForm()
+            var new_url = location.href;
+            if ( new_url[ new_url.length -1] != "/" ) {
+                new_url += "/";
+            }
+            new_url += url_sufix;
+            // alert(new_url);
+            location.href = new_url;
+            return false;
+        }
+        </script><input type="button" onclick="submitForm()" name='submit_button' value="Run">
+        </form>
+        """)
 
     def args_begin(self):
         self.print("<table border=1>")
@@ -53,7 +84,6 @@ class WebPrinter(Printer):
         self.print("</table>")
 
     def print_argument(self, arg):
-
         arg_type_text = f"{arg.type}".replace("<", "&lt;").replace(">", "&gt;")
 
         default_value_text = ""
@@ -62,7 +92,7 @@ class WebPrinter(Printer):
                 default_value_text = ""
                 for i in range(0, len(arg.default)):
                     default_value_text += f"{arg.default[i]}"
-                    if i != len(arg.default):
+                    if i != len(arg.default) -1:
                         default_value_text += ","
                 default_value_text = f' value="{default_value_text}" '
             else:
@@ -72,6 +102,11 @@ class WebPrinter(Printer):
             form_value =f'<input type="number" step="1" name="{arg.name}" {default_value_text} />'
         elif arg.type is float:
             form_value =f'<input type="number"          name="{arg.name}" {default_value_text} />'
+        elif arg.type is bool:
+            checked = ""
+            if arg.has_default and arg.default:
+                checked = " checked "
+            form_value =f'<input type="checkbox"        name="{arg.name}" {checked} />'
         else:
             form_value =f'<input type="text"            name="{arg.name}" {default_value_text} />'
 

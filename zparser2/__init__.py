@@ -527,10 +527,13 @@ class Task(Helper):
 
             if param_class is not None:
                 param_value = parsed_paramenters[i]
-                if isinstance(param_value, param_class) or param_value.__class__ == int and param_class == float:
+                print(f"param_name={param_name} param_class={param_class}")
+                if isinstance(param_value, param_class) or param_value.__class__ in (int, float):
+                    continue
+                elif param_class == bool and param_value is not None and param_value.lower() in ["true", "false"]:
                     continue
                 else:
-                    raise ArgumentException(f"Invalid value for paramter {param_name}. A {param_class} is expected, not {param_value.__class__}")
+                    raise ArgumentException(f"Invalid value for parameter [{param_name}]. A [{param_class}] is expected, not [{param_value.__class__}/{param_value}]")
 
     def _parse_floats_and_ints_in_a_list(self, the_list):
         size = len(the_list)
