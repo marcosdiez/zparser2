@@ -83,11 +83,11 @@ else:
 # # # )
 
 
-# # @z.task
-# # def sample(blah):
-# #     return blah
+@z.task
+def sample(blah: str ):
+    return blah
 
 
-# # @z.task
-# # def another_task():
-# #     return "This is just another task"
+@z.task
+def another_task():
+    return "This is just another task"

@@ -13,7 +13,11 @@ class WebPrinter(Printer):
     def init(self):
         self.running = True
         self.q = queue.SimpleQueue()
-        self.print("<style>a { text-decoration: none; }</style><pre>")
+        self.print("<!DOCTYPE html><html><style>a { text-decoration: none; }</style><pre>")
+
+    def end(self):
+        self.print("</pre></html>")
+        self.running = False
 
     def display(self):
         yield self.q.get()
@@ -26,12 +30,21 @@ class WebPrinter(Printer):
     def make_url(self, name: str):
         return f"<a href='{name}/'>{name}</a>"
 
+    def make_prog_url(self, name):
+        return f"<a href='../'>{name}</a>"
+
+    def make_prog_url2(self, name):
+        return f"<a href='../../'>{name}</a>"
+
+    def make_plugin_url(self, name):
+        return f"<a href='../'>{name}</a>"
+
+
     def args_section_begin(self):
         self.print("<form name='one'>")
 
     def args_section_end(self):
-        self.print("""
-        <script>
+        self.print("""<script>
         function buildParametersFromForm(){
             var output = ""
             for ( const elem of document.one.elements ) {
@@ -58,27 +71,27 @@ class WebPrinter(Printer):
             location.href = new_url;
             return false;
         }
-        </script><input type="button" onclick="submitForm()" name='submit_button' value="Run">
+        </script><input type="button" onclick="submitForm()" name='submit_button' value="Run" />
         </form>
         """)
 
     def args_begin(self):
         self.print("<table border=1>")
-        self.print(f"<tr><th>Argument Name</th><th>Type</th></th><th>Description</th><th>Value</th>")
+        self.print(f"<tr><th>Argument Name</th><th>Type</th><th>Description</th><th>Value</th></tr>")
 
     def args_end(self):
         self.print("</table>")
 
     def optional_args_begin(self):
         self.print("<table border=1>")
-        self.print(f"<tr><th>Argument Name</th><th>Type</th><th>Default Value</th><th>Description</th><th>Value</th>")
+        self.print(f"<tr><th>Argument Name</th><th>Type</th><th>Default Value</th><th>Description</th><th>Value</th></tr>")
 
     def optional_args_end(self):
         self.print("</table>")
 
     def varargs_begin(self):
         self.print("<table border=1>")
-        self.print(f"<tr><th>Argument Name</th><th>Type</th></th><th>Description</th><th>Value</th>")
+        self.print(f"<tr><th>Argument Name</th><th>Type</th><th>Description</th><th>Value</th></tr>")
 
     def varargs_end(self):
         self.print("</table>")
@@ -133,7 +146,7 @@ def zparser2_run(request_path: str):
         z.parse(argv).run()
     except ZExitException as e:
         print(f"ZExitException(e={e})")
-    z.printer.running = False
+    z.printer.end()
 
 
 def zparser2_web_init(request_path: str, plugin_list: list = []):

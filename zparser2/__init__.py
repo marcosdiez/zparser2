@@ -78,6 +78,15 @@ class Printer:
     def make_url(self, name):
         return name
 
+    def make_prog_url(self, name):
+        return name
+
+    def make_prog_url2(self, name):
+        return name
+
+    def make_plugin_url(self, name):
+        return name
+
     def args_section_begin(self):
         pass
 
@@ -312,9 +321,9 @@ class Plugin(Helper):
         self.printer.print(self.help)
 
         if self.name == PYTHON_MAIN:
-            self.printer.print("{} <task>".format(z.prog_name))
+            self.printer.print(f"{self.printer.make_prog_url(z.prog_name)} <task>")
         else:
-            self.printer.print("{} {} <task>".format(z.prog_name, self.name))
+            self.printer.print(f"{self.printer.make_prog_url(z.prog_name)} {self.name} <task>")
         self.printer.print("Plugin alias: {}".format(self.alias))
         self.printer.print("Tasks:")
         self.list_tasks()
@@ -482,21 +491,21 @@ class Task(Helper):
             parameters.append("[{p}, [{p}...]".format(p=self.varargs.name))
 
         if self.plugin == PYTHON_MAIN:
-            self.printer.print("  {} {} {}".format(z.prog_name, self.name, " ".join(parameters)))
+            self.printer.print("  {} {} {}".format(self.printer.make_prog_url2(z.prog_name), self.name, " ".join(parameters)))
         else:
-            self.printer.print("  {} {} {} {}".format(z.prog_name, self.plugin, self.name, " ".join(parameters)))
+            self.printer.print("  {} {} {} {}".format(self.printer.make_prog_url2(z.prog_name), self.printer.make_plugin_url(self.plugin), self.name, " ".join(parameters)))
 
         self.printer.args_section_begin()
         if self.args:
-            self.printer.args_begin()
             self.printer.print("Positional arguments:")
+            self.printer.args_begin()
             for arg in self.args:
                 self.printer.print_argument(arg)
             self.printer.args_end()
 
         if self.optional_args:
-            self.printer.optional_args_begin()
             self.printer.print("Optional arguments:")
+            self.printer.optional_args_begin()
             for arg in self.optional_args:
                 arg_name = "--{}".format(arg.name)
                 if arg.short:
