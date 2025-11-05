@@ -182,19 +182,19 @@ WebSite Output
 
 Main Website
 
-![Main Website](screenshots/zparser2_web1.png "Main Website")
+![Main Website](./screenshots/zparser2_web1.png "Main Website")
 
 -----------
 
 Function `say_hello`, with input forms
 
-![Function say_hello](screenshots/zparser2_web2.png "Function say_hello")
+![Function say_hello](./screenshots/zparser2_web2.png "Function say_hello")
 
 -----------
 
 Function output
 
-![Function output](screenshots/zparser2_web3.png "Function output")
+![Function output](./screenshots/zparser2_web3.png "Function output")
 
 
 
