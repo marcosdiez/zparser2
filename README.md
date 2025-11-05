@@ -12,8 +12,9 @@ Perks:
   * The file in which the function is located will be the module in which the function will be available.
   * If a module contains a docstring, it will show as the module's documentation in the CLI
   * If a function is in the main python script (`__main__`), it will be directly accessible, without needing to provide the module name.
+  * You can access it using the cli or a web browser
 
-The downside is that you can only have up two layers in your cli (app.py MODULE_NAME FUNCTION_NAME). That being said, more than that would be too complex.
+The downside is that you can only have up to two layers in your cli (either `app.py FUNCITON_NAME` or `app.py MODULE_NAME FUNCTION_NAME`). If you need somethig more complex than that, please use something like https://pypi.org/project/click/ .
 
 Instalation
 -----------
@@ -27,7 +28,7 @@ Example
 Let's say you have 3 files:
 
 
-math_functions.py
+[math_functions.py](example/math_functions.py)
 ```python
 """here we do math"""
 from zparser2 import z
@@ -43,7 +44,7 @@ def triple_number(x: float):
     return 3*x
 ```
 
-string_functions.py
+[string_functions.py](example/string_functions.py)
 ```python
 """string processing"""
 from zparser2 import z
@@ -66,18 +67,19 @@ def last_word(x: str):
 @z.task
 def another_task(somestring: str, some_int: int, workdir=None, root_url=None):
     """description of the task"""
-    print(f"somestring={somestring}")
-    print(f"some_int={some_int}")
-    print(f"workdir={workdir}")
-    print(f"root_url={root_url}")
+    z.print(f"somestring={somestring}")
+    z.print(f"some_int={some_int}")
+    z.print(f"workdir={workdir}")
+    z.print(f"root_url={root_url}")
 ```
 
 
-mycli.py
+
+[mycli.py](example/mycli.py)
 ```python
 #!/usr/bin/env python3
 """description of the __main__ module"""
-from zparser2 import z, zparser2_init
+from zparser2 import z, zparser2_init, __version__ as zparser2_version
 import math_functions
 import string_functions
 
@@ -85,10 +87,11 @@ import string_functions
 @z.task
 def say_hello(name: str):
     """this is a function on the main file"""
-    print(f"Hello {name}, welcome to zparser 2!")
+    z.print(f"Hello {name}, welcome to zparser2 {zparser2_version} !")
 
 if __name__ == "__main__":
     zparser2_init()
+
 
 ```
 
@@ -149,8 +152,54 @@ root_url=https://blah.com
 Hello Bob, welcome to zparser 2!
 ```
 
+Using the Web Browser
+=====================
+
+For very simple tools, in very specific circunstances, you may want to run your `zparser2` scripts via a web browser.
+Fear not. We've got you covered!
+
+With some small modifications to [mycli.py](example/mycli.py), we created [zparser2_web.py](example/zparser2_web.py) which makes `zparser2` a runs a [Flask](https://flask.palletsprojects.com/en/stable/) website.
+
+
+To run the website in development mode, type:
+
+* `flask --app zparser2_web run --host 0.0.0.0 --reload`
+
+Please check the official [Flask](https://flask.palletsprojects.com/en/stable/) to run it in production.
+
+
+Some technical notes on this topic:
+
+* `zparser2` generates a [Flask](https://flask.palletsprojects.com/en/stable/) compatible output, which means although you do need [Flask](https://flask.palletsprojects.com/en/stable/) to run and host your website, [Flask](https://flask.palletsprojects.com/en/stable/) is not a dependency to `zparser2`
+
+* For you to use this feature, you need to use `z.print()` instead of `print()` in your functions, else the output will go to `stdout` instead of to the zparser2 flask website. If you are just using `zparser2` for the cli, it does not matter.
+
+* Lines are sent from the server to the browser one at a time (streamed), instead of all at once, just like in the cli.
+
+
+WebSite Output
+--------------
+
+Main Website
+
+![Main Website](screenshots/zparser2_web1.png "Main Website")
+
+-----------
+
+Function `say_hello`, with input forms
+
+![Function say_hello](screenshots/zparser2_web2.png "Function say_hello")
+
+-----------
+
+Function output
+
+![Function output](screenshots/zparser2_web3.png "Function output")
+
+
+
 How to build & publish
-----------------------
+======================
 
 * `python3 -m build`
 * `python3 -m twine upload --repository testpypi dist/*`
