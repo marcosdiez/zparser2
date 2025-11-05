@@ -43,7 +43,7 @@ class ZExitException(Exception):
 
 
 def zexit(exit_code):
-    print(f"zexit(exit_code={exit_code})")
+    # print(f"zexit(exit_code={exit_code})")
     raise ZExitException(exit_code)
 
 
@@ -170,7 +170,11 @@ class ZParser(Helper):
             plugin_list = [filename[:-3] for filename in os.listdir(plugin_dir) if filename[-3:] == ".py" and filename != "__init__.py"]
             # create dict entry before loading them
             for plugin_name in plugin_list:
-                self.plugins[plugin_name] = Plugin(plugin_name, self.printer)
+
+                # this check only happens in the web version, where
+                # z is a global, persistent variable and importlib does not like loading things twice
+                if plugin_name not in self.plugins:
+                    self.plugins[plugin_name] = Plugin(plugin_name, self.printer)
 
             for plugin_name in plugin_list:
                 # loaded_plugin = importlib.import_module("{}.{}".format(module, plugin))
