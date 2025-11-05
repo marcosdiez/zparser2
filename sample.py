@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """description of the __main__ module"""
 from zparser2 import z, zparser2_init, __version__ as zparser2_version
+
 print(zparser2_version)
 
 import local_module
@@ -18,4 +19,8 @@ def task_on_the_main_file(somestring: str, some_int: int, some_float: float, wor
 
 
 if __name__ == "__main__":
-    zparser2_init(["plugins",])
+    zparser2_init(
+        [
+            "plugins",
+        ]
+    )

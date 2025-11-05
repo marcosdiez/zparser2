@@ -39,12 +39,12 @@ class WebPrinter(Printer):
     def make_plugin_url(self, name):
         return f"<a href='../'>{name}</a>"
 
-
     def args_section_begin(self):
         self.print("<form name='one'>")
 
     def args_section_end(self):
-        self.print("""<script>
+        self.print(
+            """<script>
         function buildParametersFromForm(){
             var output = ""
             for ( const elem of document.one.elements ) {
@@ -73,7 +73,8 @@ class WebPrinter(Printer):
         }
         </script><input type="button" onclick="submitForm()" name='submit_button' value="Run" />
         </form>
-        """)
+        """
+        )
 
     def args_begin(self):
         self.print("<table border=1>")
@@ -105,23 +106,23 @@ class WebPrinter(Printer):
                 default_value_text = ""
                 for i in range(0, len(arg.default)):
                     default_value_text += f"{arg.default[i]}"
-                    if i != len(arg.default) -1:
+                    if i != len(arg.default) - 1:
                         default_value_text += ","
                 default_value_text = f' value="{default_value_text}" '
             else:
                 default_value_text = f' value="{arg.default}" '
 
         if arg.type is int:
-            form_value =f'<input type="number" step="1" name="{arg.name}" {default_value_text} />'
+            form_value = f'<input type="number" step="1" name="{arg.name}" {default_value_text} />'
         elif arg.type is float:
-            form_value =f'<input type="number"          name="{arg.name}" {default_value_text} />'
+            form_value = f'<input type="number"          name="{arg.name}" {default_value_text} />'
         elif arg.type is bool:
             checked = ""
             if arg.has_default and arg.default:
                 checked = " checked "
-            form_value =f'<input type="checkbox"        name="{arg.name}" {checked} />'
+            form_value = f'<input type="checkbox"        name="{arg.name}" {checked} />'
         else:
-            form_value =f'<input type="text"            name="{arg.name}" {default_value_text} />'
+            form_value = f'<input type="text"            name="{arg.name}" {default_value_text} />'
 
         if arg.has_default:
             self.print(f"<tr><th>{arg.name}</th><td>{arg_type_text}</td><td>{arg.default}</td><td>{arg.short_help}</td><td>{form_value}</td></tr>")
@@ -147,7 +148,6 @@ def zparser2_run(request_path: str, plugin_list: list):
     except ZExitException as exit_exception:
         pass
     z.printer.running = False
-
 
 
 def zparser2_web_init(request_path: str, plugin_list: list = []):

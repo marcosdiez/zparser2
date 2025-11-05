@@ -112,7 +112,6 @@ class Printer:
         pass
 
 
-
 class Helper:
     def __init__(self, printer):
         self.help = ""
@@ -410,8 +409,6 @@ class Task(Helper):
         if argdata.varargs:
             self.varargs = Varargs(self.printer, argdata.varargs)
 
-
-
     def _clean_args(self):
         for arg in self.optional_args:
             arg.is_set = False
@@ -514,7 +511,6 @@ class Task(Helper):
                 self.printer.print_argument(arg)
             self.printer.optional_args_end()
 
-
         if self.varargs:
             self.printer.print("Variable arguments:")
             self.printer.varargs_begin()
@@ -522,7 +518,6 @@ class Task(Helper):
             self.printer.varargs_end()
 
         self.printer.args_section_end()
-
 
     def _args_value(self):
         only_string_parameters = [arg.value for arg in self.all_args] + ([] if not self.varargs else self.varargs.value)

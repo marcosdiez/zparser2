@@ -19,13 +19,13 @@ def task_on_the_main_file(
     some_int: int,
     some_float: float,
     some_boolean: bool,
-    some_list = ["aa", "bb", "cc"],
+    some_list=["aa", "bb", "cc"],
     favorite_number=42,
     my_float=4.5,
-    workdir = None,
-    a_true_boolean = True,
-    a_false_boolean = False,
-    workdir2 : str = None,
+    workdir=None,
+    a_true_boolean=True,
+    a_false_boolean=False,
+    workdir2: str = None,
     given_string="blah-bleh-blih",
     *vararg,
 ):
@@ -66,6 +66,7 @@ def page_not_found(error):
 
 if __name__ == "__main__":
     import sys
+
     print(sys.argv)
     zparser2_init(["plugins"])
 else:
@@ -82,7 +83,7 @@ else:
 
 
 @z.task
-def sample(blah: str ):
+def sample(blah: str):
     return blah
 
 
