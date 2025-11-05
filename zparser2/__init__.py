@@ -537,7 +537,6 @@ class Task(Helper):
 
             if param_class is not None:
                 param_value = parsed_paramenters[i]
-                print(f"param_name={param_name} param_class={param_class}")
                 if isinstance(param_value, param_class) or param_value.__class__ in (int, float):
                     continue
                 elif param_class == bool and param_value is not None and param_value.lower() in ["true", "false"]:
@@ -565,7 +564,6 @@ class Task(Helper):
         return the_list
 
     def run(self):
-        print("RUN IS RUNNING")
         try:
             result = self.function(*self._args_value())
         except ArgumentException as e:
