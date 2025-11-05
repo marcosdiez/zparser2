@@ -12,6 +12,10 @@ print(zparser2_version)
 
 import local_module
 
+# # # from werkzeug.middleware.proxy_fix import ProxyFix
+# # # app.wsgi_app = ProxyFix(
+# # #     app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+# # # )
 
 @z.task
 def task_on_the_main_file(
@@ -45,9 +49,17 @@ def task_on_the_main_file(
     z.print(f"given_string={given_string}")
     z.print(f"vararg={vararg}")
 
+@z.task
+def sample(blah: str):
+    return blah
+
+
+@z.task
+def another_task():
+    return "This is just another task"
+
 
 app = Flask(__name__)
-
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -60,33 +72,18 @@ def page_not_found(error):
             [
                 "plugins",
             ],
+            __name__
         )
     )
 
 
 if __name__ == "__main__":
     import sys
-
     print(sys.argv)
     zparser2_init(["plugins"])
 else:
     print(f"I am running on flask [{__name__}]")
 
 
-# import sample
 
 
-# # # from werkzeug.middleware.proxy_fix import ProxyFix
-# # # app.wsgi_app = ProxyFix(
-# # #     app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
-# # # )
-
-
-@z.task
-def sample(blah: str):
-    return blah
-
-
-@z.task
-def another_task():
-    return "This is just another task"

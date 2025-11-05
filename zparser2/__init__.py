@@ -5,6 +5,8 @@ import importlib
 from copy import copy
 from inspect import getfullargspec
 
+from . import common
+
 __version__ = "0.0.14"
 
 
@@ -34,7 +36,8 @@ def is_optional(arg):
 
 
 RST_PARAM_RE = re.compile(r"^([\t ]*):param (.*?): (.*\n(\1[ \t]+.*\n*)*)", re.MULTILINE)
-PYTHON_MAIN = "__main__"
+# PYTHON_MAIN = "__main__"
+# PYTHON_MAIN = "sample_web"
 
 
 class ZExitException(Exception):
@@ -68,6 +71,9 @@ class Printer:
 
     def print(self, msg):
         print(msg)
+
+    def print_escape(self, msg):
+        return self.print(msg)
 
     def print_argument(self, arg):
         if arg.has_default:
@@ -221,22 +227,22 @@ class ZParser(Helper):
         self.plugins[plugin_name].add_task(task)
 
     def usage(self):
-        has_main = PYTHON_MAIN in self.plugins
+        has_main = common.PYTHON_MAIN in self.plugins
         if has_main:
-            if len(self.plugins[PYTHON_MAIN].help) > 0:
-                self.printer.print(self.plugins[PYTHON_MAIN].help)
-            self.printer.print("{} <task>".format(self.prog_name))
+            if len(self.plugins[common.PYTHON_MAIN].help) > 0:
+                self.printer.print(self.plugins[common.PYTHON_MAIN].help)
+            self.printer.print_escape("{} <task>".format(self.prog_name))
 
         if len(self.plugins) > 2 or (has_main == False and len(self.plugins) >= 1):
-            self.printer.print("{} <plugin_name> <task>".format(self.prog_name))
+            self.printer.print_escape("{} <plugin_name> <task>".format(self.prog_name))
             self.printer.print("Plugin list:")
             for plugin in [value for (key, value) in sorted(self.plugins.items())]:
-                if plugin.name != PYTHON_MAIN:
+                if plugin.name != common.PYTHON_MAIN:
                     self.printer.print("  {:20} - {}".format(self.printer.make_url(plugin.name), plugin.short_help))
 
         if has_main:
             self.printer.print("Tasks:")
-            self.plugins[PYTHON_MAIN].list_tasks()
+            self.plugins[common.PYTHON_MAIN].list_tasks()
 
     def parse(self, argv=None, prog_name=None):
         if argv is None:
@@ -261,8 +267,8 @@ class ZParser(Helper):
             if arg == plugin.name or arg in plugin.alias:
                 runner = plugin.parse(argv[1:])
                 return plugin, runner
-        if PYTHON_MAIN in self.plugins:
-            plugin = self.plugins[PYTHON_MAIN]
+        if common.PYTHON_MAIN in self.plugins:
+            plugin = self.plugins[common.PYTHON_MAIN]
             runner = plugin.parse(argv[0:])
             return plugin, runner
 
@@ -320,7 +326,7 @@ class Plugin(Helper):
     def usage(self):
         self.printer.print(self.help)
 
-        if self.name == PYTHON_MAIN:
+        if self.name == common.PYTHON_MAIN:
             self.printer.print(f"{self.printer.make_prog_url(z.prog_name)} <task>")
         else:
             self.printer.print(f"{self.printer.make_prog_url(z.prog_name)} {self.name} <task>")
@@ -488,7 +494,7 @@ class Task(Helper):
         if self.varargs:
             parameters.append("[{p}, [{p}...]".format(p=self.varargs.name))
 
-        if self.plugin == PYTHON_MAIN:
+        if self.plugin == common.PYTHON_MAIN:
             self.printer.print("  {} {} {}".format(self.printer.make_prog_url2(z.prog_name), self.name, " ".join(parameters)))
         else:
             self.printer.print("  {} {} {} {}".format(self.printer.make_prog_url2(z.prog_name), self.printer.make_plugin_url(self.plugin), self.name, " ".join(parameters)))

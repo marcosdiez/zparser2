@@ -1,7 +1,7 @@
 import threading
 import queue
 
-from . import z, Printer, ZExitException
+from . import z, Printer, ZExitException, common
 
 
 class WebPrinter(Printer):
@@ -26,6 +26,10 @@ class WebPrinter(Printer):
         # print(f"WebPrinter({msg})")
         # self.q.put(f"[{msg}]")
         self.q.put(msg)
+
+    def print_escape(self, msg):
+        return self.print(self.escape(msg))
+
 
     def make_url(self, name: str):
         return f"<a href='{name}/'>{name}</a>"
@@ -97,8 +101,11 @@ class WebPrinter(Printer):
     def varargs_end(self):
         self.print("</table>")
 
+    def escape(self, msg):
+        return msg.replace("<", "&lt;").replace(">", "&gt;")
+
     def print_argument(self, arg):
-        arg_type_text = f"{arg.type}".replace("<", "&lt;").replace(">", "&gt;")
+        arg_type_text = self.escape(f"{arg.type}")
 
         default_value_text = ""
         if arg.has_default and arg.default is not None:
@@ -150,7 +157,8 @@ def zparser2_run(request_path: str, plugin_list: list):
     z.printer.running = False
 
 
-def zparser2_web_init(request_path: str, plugin_list: list = []):
+def zparser2_web_init(request_path: str, plugin_list: list = [], python_main_name="__main__"):
+    common.PYTHON_MAIN = python_main_name
     z.printer.__class__ = WebPrinter  # yes, we monkeypatch !
     z.printer.init()
     z.set_plugin_module(plugin_list)
