@@ -9,7 +9,7 @@ from inspect import getfullargspec
 
 from . import common
 
-__version__ = "0.0.15"
+__version__ = "0.0.16"
 
 
 def extracted_arg_name(arg):
