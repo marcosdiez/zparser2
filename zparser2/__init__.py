@@ -1,3 +1,5 @@
+import json
+import types
 import re
 import os
 import sys
@@ -7,7 +9,7 @@ from inspect import getfullargspec
 
 from . import common
 
-__version__ = "0.0.14"
+__version__ = "0.0.15"
 
 
 def extracted_arg_name(arg):
@@ -567,31 +569,34 @@ class Task(Helper):
 
         return the_list
 
+    def dumper(self, obj):
+        self.printer.print(json.dumps(obj, indent=2, sort_keys=True, default=str))
+
+    def print_helper(self, result):
+        if result is None:
+            return
+        for valid_type in (str, int, float, bool):
+            if isinstance(result, valid_type):
+                self.printer.print(result)
+                return
+        for valid_type in (list, dict):
+            if isinstance(result, valid_type):
+                self.dumper(result)
+                return
+        if isinstance(result, types.GeneratorType):
+            for elem in result:
+                self.print_helper(elem)
+            return
+        else:
+            self.printer.print(result)
+
     def run(self):
         try:
             result = self.function(*self._args_value())
         except ArgumentException as e:
             self.print_help(e.error_msg)
         else:
-            if result or result is False:
-                if isinstance(result, list):
-                    if isinstance(result[0], str):
-                        x = []
-                        for r in result:
-                            if " " in r:
-                                x.append('"{}"'.format(r))
-                            else:
-                                x.append(r)
-                        output = " ".join(x)
-                        self.printer.print(output)
-                    else:
-                        for r in result:
-                            self.printer.print(r)
-                elif isinstance(result, dict):
-                    for key, value in result.items():
-                        self.printer.print("{}\t{}".format(key, value))
-                else:
-                    self.printer.print(result)
+            self.print_helper(result)
 
     def __repr__(self):
         return self.name
