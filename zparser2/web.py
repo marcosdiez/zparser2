@@ -10,10 +10,11 @@ class WebPrinter(Printer):
     BOLD = "<b>"
     RED = "<font color='red'>"
 
-    def init(self):
+    def init(self, show_welcome_message=True):
         self.running = True
         self.q = queue.SimpleQueue()
-        self.print("<!DOCTYPE html><html><title>" + common.PYTHON_MAIN + "</title><style>a { text-decoration: none; }</style><pre>")
+        if show_welcome_message:
+            self.print("<!DOCTYPE html><html><title>" + common.PYTHON_MAIN + "</title><style>a { text-decoration: none; }</style><pre>")
 
     def end(self):
         self.print("</pre></html>")
@@ -164,4 +165,16 @@ def zparser2_web_init(request_path: str, plugin_list: list = [], python_main_nam
 
     while z.printer.running or not z.printer.q.empty():
         for msg in z.printer.display():
+            yield f"{msg}\n"
+
+
+def flask_runner(the_z, the_function, the_args, page_title="zparser_web"):
+    common.PYTHON_MAIN = page_title
+    the_z.printer = WebPrinter()
+    the_z.printer.init(show_welcome_message=True)
+
+    t = threading.Thread(target=the_function, args=the_args)
+    t.start()
+    while t.is_alive() or not the_z.printer.q.empty():
+        for msg in the_z.printer.display():
             yield f"{msg}\n"

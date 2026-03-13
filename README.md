@@ -177,6 +177,35 @@ Some technical notes on this topic:
 * Lines are sent from the server to the browser one at a time (streamed), instead of all at once, just like in the cli.
 
 
+Calling Functions from Flask
+----------------------------
+
+Sometimes, when using Flask, you want to call a function from a module that is using zparser2.
+
+Theoretically, you could call the function directly, but then you would loose all output.
+Actually the output would be sent to stdout, which is usually to the logs and not to the browser.
+
+If you create your function using `z.print()` instead of `print` (regardless of it having a `@z.task` on top or not,
+you can easily invoke it using Flask, like this:
+
+
+```
+# this is your normal flask file
+
+import zparser2.web
+import string_functions # that is from the zparser2 example
+
+@app.route("/test_calling_a_zparser2_function")
+def test_calling_a_zparser2_function():
+    parameters = ["somestring", 42]
+    title = "my page"
+    for x in zparser2.web.flask_runner(string_functions.z, string_functions.another_task, parameters, page_title=title):
+        yield x
+
+```
+
+
+
 WebSite Output
 --------------
 
