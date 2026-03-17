@@ -10,14 +10,23 @@ class WebPrinter(Printer):
     BOLD = "<b>"
     RED = "<font color='red'>"
 
-    def init(self, show_welcome_message=True):
+    def init(self, header=None, footer=None):
         self.running = True
         self.q = queue.SimpleQueue()
-        if show_welcome_message:
-            self.print("<!DOCTYPE html><html><title>" + common.PYTHON_MAIN + "</title><style>a { text-decoration: none; }</style><pre>")
+        self.footer = footer
+
+        if header is None:
+            self.print("<!DOCTYPE html><html><title>" + common.PYTHON_MAIN + "</title><style>a { text-decoration: none; } </style><pre>")
+        else:
+            self.print(header)
+
+
 
     def end(self):
-        self.print("</pre></html>")
+        if self.footer:
+            self.print(self.footer)
+        else:
+            self.print("</pre></html>")
         self.running = False
 
     def display(self):
@@ -168,18 +177,19 @@ def zparser2_web_init(request_path: str, plugin_list: list = [], python_main_nam
             yield f"{msg}\n"
 
 
-def flask_runner(the_function, the_args, page_title="zparser_web"):
+def flask_runner(the_function, the_args, page_title="zparser_web", header=None, footer=None):
     common.PYTHON_MAIN = page_title
 
     the_z = the_function.__globals__.get("z")
     old_printer = the_z.printer
     the_z.printer = WebPrinter()
-    the_z.printer.init(show_welcome_message=True) # that is a hacky monkeypatch
+    the_z.printer.init(header=header, footer=footer) # that is a hacky monkeypatch
 
     t = threading.Thread(target=the_function, args=the_args)
     t.start()
     while t.is_alive() or not the_z.printer.q.empty():
         for msg in the_z.printer.display():
             yield f"{msg}\n"
+    yield footer if footer else "</pre></html>"
 
     the_z.printer = old_printer
