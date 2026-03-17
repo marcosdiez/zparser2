@@ -168,13 +168,18 @@ def zparser2_web_init(request_path: str, plugin_list: list = [], python_main_nam
             yield f"{msg}\n"
 
 
-def flask_runner(the_z, the_function, the_args, page_title="zparser_web"):
+def flask_runner(the_function, the_args, page_title="zparser_web"):
     common.PYTHON_MAIN = page_title
+
+    the_z = the_function.__globals__.get("z")
+    old_printer = the_z.printer
     the_z.printer = WebPrinter()
-    the_z.printer.init(show_welcome_message=True)
+    the_z.printer.init(show_welcome_message=True) # that is a hacky monkeypatch
 
     t = threading.Thread(target=the_function, args=the_args)
     t.start()
     while t.is_alive() or not the_z.printer.q.empty():
         for msg in the_z.printer.display():
             yield f"{msg}\n"
+
+    the_z.printer = old_printer

@@ -199,7 +199,7 @@ import string_functions # that is from the zparser2 example
 def test_calling_a_zparser2_function():
     parameters = ["somestring", 42]
     title = "my page"
-    for x in zparser2.web.flask_runner(string_functions.z, string_functions.another_task, parameters, page_title=title):
+    for x in zparser2.web.flask_runner(string_functions.another_task, parameters, page_title=title):
         yield x
 
 ```
